@@ -127,13 +127,13 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
         </div>
     </header>
 
-    <!-- Navegación principal -->
+<!-- Navegación principal -->
     <nav class="bg-white border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-8">
                 <!-- Dashboard -->
                 <a href="<?= Url::to(['/site/index']) ?>" 
-                   class="<?= Yii::$app->controller->id === 'site' && Yii::$app->controller->action->id === 'index' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                class="<?= Yii::$app->controller->id === 'site' && Yii::$app->controller->action->id === 'index' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                         <polyline points="9,22 9,12 15,12 15,22"/>
@@ -143,7 +143,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
 
                 <!-- Ventas -->
                 <a href="<?= Url::to(['/ventas/index']) ?>" 
-                   class="<?= Yii::$app->controller->id === 'ventas' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                class="<?= Yii::$app->controller->id === 'ventas' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <circle cx="8" cy="21" r="1"/>
                         <circle cx="19" cy="21" r="1"/>
@@ -154,7 +154,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
 
                 <!-- Diseño -->
                 <a href="<?= Url::to(['/diseno/index']) ?>" 
-                   class="<?= Yii::$app->controller->id === 'diseno' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                class="<?= Yii::$app->controller->id === 'diseno' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <circle cx="13.5" cy="6.5" r=".5"/>
                         <circle cx="17.5" cy="10.5" r=".5"/>
@@ -167,7 +167,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
 
                 <!-- Producción -->
                 <a href="<?= Url::to(['/produccion/index']) ?>" 
-                   class="<?= Yii::$app->controller->id === 'produccion' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                class="<?= Yii::$app->controller->id === 'produccion' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M12 1v6m0 6v6"/>
@@ -180,7 +180,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
 
                 <!-- Logística -->
                 <a href="<?= Url::to(['/logistica/index']) ?>" 
-                   class="<?= Yii::$app->controller->id === 'logistica' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                class="<?= Yii::$app->controller->id === 'logistica' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
                         <path d="M15 18H9"/>
@@ -190,6 +190,43 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
                     </svg>
                     Logística
                 </a>
+
+                <!-- NUEVOS ENLACES DE ADMINISTRACIÓN -->
+                <?php if (!Yii::$app->user->isGuest): ?>
+                
+                    <!-- Administración (solo para usuarios con permisos admin) -->
+                    <?php if (Yii::$app->user->identity->hasPermission('admin', 'all') || Yii::$app->user->identity->role->es_admin): ?>
+                    <a href="<?= Url::to(['/admin/index']) ?>" 
+                    class="<?= Yii::$app->controller->id === 'admin' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Administración
+                    </a>
+                    <?php endif; ?>
+
+                    <!-- Usuarios -->
+                    <a href="<?= Url::to(['/usuario/index']) ?>" 
+                    class="<?= Yii::$app->controller->id === 'usuario' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                        Usuarios
+                    </a>
+
+                    <!-- Roles (solo para admin) -->
+                    <?php if (Yii::$app->user->identity->hasPermission('admin', 'roles') || Yii::$app->user->identity->role->es_admin): ?>
+                    <a href="<?= Url::to(['/role/index']) ?>" 
+                    class="<?= Yii::$app->controller->id === 'role' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' ?> inline-flex items-center px-1 pt-4 pb-4 border-b-2 text-sm font-medium">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        Roles
+                    </a>
+                    <?php endif; ?>
+
+                <?php endif; ?>
             </div>
         </div>
     </nav>
