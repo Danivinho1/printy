@@ -1,0 +1,973 @@
+
+    :root {
+        --printy-yellow: #fff700; /* Amarillo corporativo */
+        --printy-black: #000000;
+        --printy-white: #FFFFFF;
+        --printy-gray: #f8f9fa;
+    }
+
+    /* === ESTILO GENERAL PARA ENCABEZADOS DE MODALES === */
+    .modal-header {
+        background-color: var(--printy-yellow) !important;
+        color: var(--printy-black) !important;
+        border-bottom: 2px solid var(--printy-black);
+        font-weight: bold;
+    }
+
+    /* Icono dentro del encabezado */
+    .modal-header i {
+        color: var(--printy-black) !important;
+    }
+
+    /* === PIE DEL MODAL === */
+    .modal-footer {
+        background-color: var(--printy-gray) !important;
+        border-top: 1px solid #ddd;
+    }
+
+    /* === BOTONES PERSONALIZADOS === */
+    .btn-printy {
+        background-color: var(--printy-yellow) !important;
+        color: var(--printy-black) !important;
+        font-weight: bold;
+        border: 1px solid var(--printy-black);
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Hover de botones Printy */
+    .btn-printy:hover {
+        background-color: #f3eb09fc !important;
+        color: var(--printy-black) !important;
+        transform: scale(1.05);
+    }
+
+    /* === BOTÓN CANCELAR ESTILO GRIS === */
+    .btn-cancelar {
+        background-color: #6c757d !important;
+        color: var(--printy-white) !important;
+        font-weight: bold;
+    }
+
+    .btn-cancelar:hover {
+        background-color: #5a6268 !important;
+        color: var(--printy-white) !important;
+    }
+
+
+/* ===================================================================
+   NOTIFICACIONES
+   =================================================================== */
+
+.notification {
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  border-left: 4px solid;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.notification:hover {
+  transform: translateX(2px);
+}
+
+.notification-success {
+  background-color: #ecfdf5;
+  border-left-color: var(--color-success);
+}
+
+.notification-warning {
+  background-color: #fffbeb;
+  border-left-color: var(--color-warning);
+}
+
+.notification-info {
+  background-color: #eff6ff;
+  border-left-color: var(--color-info);
+}
+
+.notification-danger {
+  background-color: #fef2f2;
+  border-left-color: var(--color-danger);
+}
+
+/* ===================================================================
+   BARRAS DE PROGRESO
+   =================================================================== */
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--gray-200);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+.progress-success { background-color: var(--color-success); }
+.progress-warning { background-color: var(--color-warning); }
+.progress-danger { background-color: var(--color-danger); }
+.progress-info { background-color: var(--color-info); }
+.progress-purple { background-color: var(--color-purple); }
+.progress-orange { background-color: var(--color-orange); }
+
+/* ===================================================================
+   UTILIDADES DE ESPACIADO
+   =================================================================== */
+
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+
+/* ===================================================================
+   UTILIDADES DE TEXTO
+   =================================================================== */
+
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+.text-gray-400 { color: var(--gray-400); }
+.text-gray-500 { color: var(--gray-500); }
+.text-gray-600 { color: var(--gray-600); }
+.text-gray-700 { color: var(--gray-700); }
+.text-gray-800 { color: var(--gray-800); }
+
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.text-info { color: var(--color-info); }
+.text-purple { color: var(--color-purple); }
+
+/* ===================================================================
+   UTILIDADES DE LAYOUT
+   =================================================================== */
+
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+.rounded { border-radius: var(--border-radius); }
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.rounded-xl { border-radius: var(--border-radius-xl); }
+.rounded-full { border-radius: 9999px; }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* ===================================================================
+   ANIMACIONES
+   =================================================================== */
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ===================================================================
+   RESPONSIVE DESIGN
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .navbar-content {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .navbar-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .search-input {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .department-tabs {
+    padding: 0 1rem;
+    gap: 0;
+  }
+  
+  .department-tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+  
+  .card-header,
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-cols-4,
+  .md\\:grid-cols-4 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .grid-cols-3,
+  .md\\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .grid-cols-2,
+  .md\\:grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .kpi-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .kpi-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* ===================================================================
+   LOGIN
+   =================================================================== */
+
+.site-login {
+    min-height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #e7d915 0%, #e7d915 25%, #e7d915 50%, #e7d915 75%, #e7d915 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.site-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 215, 0, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.login-container {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7),
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 215, 0, 0.3);
+    padding: 25px 30px;
+    max-width: 380px;
+    width: 100%;
+    max-height: 90vh;
+    position: relative;
+    z-index: 2;
+    margin: auto;
+    overflow-y: auto;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+    border-radius: 20px 20px 0 0;
+}
+
+.login-title {
+    color: #000000;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 6px;
+    font-size: 2.1rem;
+    letter-spacing: 0.5px;
+    position: relative;
+}
+
+.login-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
+    border-radius: 2px;
+}
+
+.login-subtitle {
+    color: #666666;
+    text-align: center;
+    margin-bottom: 35px;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.form-floating {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-floating > .form-control {
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 14px 20px;
+    height: 60px;
+    transition: all 0.3s ease;
+    color: #000000;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.form-floating > .form-control:focus {
+    background: #ffffff;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+    outline: none;
+    color: #000000;
+}
+
+.form-floating > .form-control::placeholder {
+    color: transparent;
+}
+
+.form-floating > label {
+    color: #666666;
+    font-weight: 600;
+    padding-left: 20px;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus + label,
+.form-floating > .form-control:not(:placeholder-shown) + label {
+    color: #ffd700;
+    transform: scale(0.85) translateY(-0.5rem);
+}
+
+.custom-checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 25px 0 30px 0;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.custom-checkbox input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    accent-color: #ffd700;
+    cursor: pointer;
+    border: 2px solid #cccccc;
+    border-radius: 4px;
+}
+
+.custom-checkbox input[type='checkbox']:checked {
+    background-color: #ffd700;
+    border-color: #ffd700;
+}
+
+.custom-checkbox label {
+    color: #333333;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 18px 0;
+    width: 100%;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 25px;
+    cursor: pointer;
+}
+
+.btn-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-login:hover::before {
+    left: 100%;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    color: #000000;
+    border-color: #000000;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4),
+                0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-login:active {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #666666;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.login-footer a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+
+
+.login-icon {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.login-icon img {
+    width: 100px;
+    height: auto;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+    animation: iconPulse 3s ease-in-out infinite !important;
+}
+
+@keyframes iconPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.form-control.is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 40px 30px;
+        margin: 20px;
+    }
+    
+    .login-title {
+        font-size: 2rem;
+    }
+    
+    .form-floating > .form-control {
+        height: 55px;
+        padding: 12px 18px;
+    }
+    
+    .btn-login {
+        padding: 16px 0;
+        font-size: 1rem;
+    }
+}
+
+/* ==============================================
+   FORMULARIO DE VENTAS 
+   ============================================== */
+
+/* Reset y configuración base */
+.ventas-form * {
+    box-sizing: border-box;
+}
+
+.ventas-form {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header del formulario */
+.ventas-form-header {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%);
+    color: #000;
+    padding: 10px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    margin-bottom: 0;
+}
+
+.ventas-form-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ventas-form-header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Grid y filas */
+.ventas-form .row {
+    display: grid;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.ventas-form .row-2 {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.ventas-form .row-3 {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+}
+
+
+
+/* Grupos de formulario */
+.ventas-form .form-group {
+    position: relative;
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.ventas-form .form-group:nth-child(1) { animation-delay: 0.1s; }
+.ventas-form .form-group:nth-child(2) { animation-delay: 0.2s; }
+.ventas-form .form-group:nth-child(3) { animation-delay: 0.3s; }
+.ventas-form .form-group:nth-child(4) { animation-delay: 0.4s; }
+
+/* Labels */
+.ventas-form label {
+    display: block;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Campos de entrada - Estilos base y Bootstrap override */
+.ventas-form input[type="text"],
+.ventas-form input[type="tel"],
+.ventas-form input[type="date"],
+.ventas-form input[type="number"],
+.ventas-form select,
+.ventas-form .form-group .form-control,
+.ventas-form .form-group .form-select {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: #fff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #000;
+}
+
+/* Estados focus */
+.ventas-form input[type="text"]:focus,
+.ventas-form input[type="tel"]:focus,
+.ventas-form input[type="date"]:focus,
+.ventas-form input[type="number"]:focus,
+.ventas-form select:focus,
+.ventas-form .form-group .form-control:focus,
+.ventas-form .form-group .form-select:focus {
+    outline: none;
+    border-color: #ffc107;
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Placeholders */
+.ventas-form input::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Select personalizado */
+.ventas-form select,
+.ventas-form .form-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffc107' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 45px;
+}
+
+/* Efectos hover */
+.ventas-form .form-group:hover input,
+.ventas-form .form-group:hover select,
+.ventas-form .form-group:hover .form-control,
+.ventas-form .form-group:hover .form-select {
+    border-color: #ffc107;
+}
+
+/* Estados de validación */
+.ventas-form input:invalid {
+    border-color: #dc3545;
+}
+
+.ventas-form input:valid {
+    border-color: #28a745;
+}
+
+.ventas-form .invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+/* BOTONES DISCRETOS - Iconos pequeños */
+.ventas-form .form-group .btn-icon-group {
+    display: flex;
+    gap: 4px;
+    margin-top: 3px;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.ventas-form .form-group:hover .btn-icon-group {
+    opacity: 0.7;
+}
+
+.ventas-form .form-group .btn-icon {
+    background: none;
+    border: none;
+    padding: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ventas-form .form-group .btn-icon:hover {
+    transform: scale(1.2);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon-add { color: #ffc107; }
+.btn-icon-edit { color: #6c757d; }
+.btn-icon-delete { color: #dc3545; }
+
+/* BOTONES DISCRETOS - Versión alternativa con botones pequeños */
+.ventas-form .form-group .btn-group {
+    opacity: 0.3;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.ventas-form .form-group:hover .btn-group {
+    opacity: 1;
+}
+
+.ventas-form .form-group .btn-sm {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.ventas-form .form-group .btn-outline-warning {
+    color: #ffc107;
+}
+
+.ventas-form .form-group .btn-outline-info {
+    color: #6c757d;
+}
+
+.ventas-form .form-group .btn-outline-danger {
+    color: #dc3545;
+}
+
+.ventas-form .form-group .btn-sm:hover {
+    transform: translateY(-1px);
+    border-color: currentColor;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor de botones principales */
+.ventas-form .button-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #f8f9fa;
+}
+
+/* Estilos de botones principales */
+.ventas-form .btn {
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.ventas-form .btn-primary {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%);
+    color: #000;
+}
+
+.ventas-form .btn-primary:hover {
+    background: linear-gradient(135deg, #ffb300 0%, #ffc107 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+}
+
+.ventas-form .btn-secondary {
+    background: #000;
+    color: #ffc107;
+}
+
+.ventas-form .btn-secondary:hover {
+    background: #333;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Modales personalizados */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header.bg-warning {
+    border-radius: 15px 15px 0 0;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados adicionales para mejor UX */
+.ventas-form input:disabled,
+.ventas-form select:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.ventas-form .form-group.required label::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ventas-form {
+        padding: 25px;
+    }
+
+    .ventas-form-header h1 {
+        font-size: 2rem;
+    }
+
+    .ventas-form .button-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .ventas-form .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .ventas-form .row-2,
+    .ventas-form .row-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .ventas-form {
+        padding: 20px;
+    }
+
+    .ventas-form-header {
+        padding: 20px;
+    }
+
+    .ventas-form-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .ventas-form input[type="text"],
+    .ventas-form input[type="tel"],
+    .ventas-form input[type="date"],
+    .ventas-form input[type="number"],
+    .ventas-form select,
+    .ventas-form .form-control,
+    .ventas-form .form-select {
+        padding: 12px 15px;
+    }
+}
+
+/* Estilos para selección múltiple */
+.ventas-form .form-group .form-select[multiple] {
+    min-height: 120px;
+    padding: 10px;
+    background-image: none;
+}
+
+.ventas-form .form-group .form-select[multiple] option {
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.ventas-form .form-group .form-select[multiple] option:checked {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca28 100%);
+    color: #000;
+    font-weight: bold;
+}
+
+.ventas-form .text-muted {
+    font-size: 0.8rem;
+    margin-top: 3px;
+}
+
