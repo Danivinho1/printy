@@ -1,0 +1,471 @@
+/* 
+ * Archivo: web/css/table-styles.css
+ * Estilos globales para todas las tablas del proyecto
+ */
+
+/* Contenedor principal de tablas */
+.custom-table-container {
+    background: white;
+    border-radius: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.custom-table-container .table {
+    margin-bottom: 0;
+    min-width: 100%;
+    white-space: nowrap;
+}
+
+/* Estilos para headers de tabla */
+.custom-table-container .table thead th {
+    background-color: #ffc107;
+    border: none;
+    font-weight: 700;
+    color: #000000 !important;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 12px;
+    border-bottom: 1px solid #e9ecef;
+    border-right: 1px solid #f0b90b;
+    text-shadow: none;
+    position: relative;
+}
+
+/* Eliminar borde derecho del último encabezado */
+.custom-table-container .table thead th:last-child {
+    border-right: none;
+}
+
+/* Línea divisoria más sutil */
+.custom-table-container .table thead th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background-color: #f0b90b;
+    opacity: 0.7;
+}
+
+/* Eliminar estilos de enlaces en headers */
+.custom-table-container .table thead th a {
+    color: #000000 !important;
+    text-decoration: none !important;
+    pointer-events: none;
+    cursor: default;
+}
+
+.custom-table-container .table thead th a:hover,
+.custom-table-container .table thead th a:focus {
+    color: #000000 !important;
+    text-decoration: none !important;
+}
+
+/* Estilos para celdas del cuerpo */
+.custom-table-container .table tbody td {
+    border: none;
+    padding: 16px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+/* Hover effect en filas */
+.custom-table-container .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+/* Última fila sin borde inferior */
+.custom-table-container .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badges de estado */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+}
+
+.status-badge.urgente {
+    background-color: #fee;
+    color: #d63384;
+}
+
+.status-badge.normal {
+    background-color: #f0f8f0;
+    color: #198754;
+}
+
+.status-badge.pendiente {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.completado {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Estilos para información con iconos */
+.info-with-icon {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.info-with-icon.telefono::before {
+    content: '📞 ';
+    margin-right: 4px;
+}
+
+.info-with-icon.email::before {
+    content: '✉️ ';
+    margin-right: 4px;
+}
+
+.info-with-icon.usuario::before {
+    content: '👤 ';
+    margin-right: 4px;
+}
+
+.info-with-icon.fecha::before {
+    content: '📅 ';
+    margin-right: 4px;
+}
+
+/* Códigos/IDs estilizados */
+.codigo-id {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Contadores numéricos */
+.numero-contador {
+    font-weight: 600;
+    color: #495057;
+    background-color: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 50%;
+    min-width: 24px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Kit badges */
+.kit-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.kit-badge.tipo-2 {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.kit-badge.tipo-3 {
+    background-color: #fff8e1;
+    color: #f57c00;
+}
+
+/* Texto sin datos */
+.sin-datos {
+    color: #6c757d;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Botones de acción en tablas */
+.custom-table-container .btn-group .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .custom-table-container {
+        border-radius: 0;
+        box-shadow: none;
+        border: 1px solid #dee2e6;
+        overflow-x: auto;
+    }
+    
+    .custom-table-container .table {
+        min-width: 800px;
+    }
+    
+    .custom-table-container .table thead th {
+        padding: 12px 8px;
+        font-size: 11px;
+        min-width: 100px;
+    }
+    
+    .custom-table-container .table tbody td {
+        padding: 12px 8px;
+        font-size: 13px;
+        min-width: 100px;
+    }
+}
+
+/* Estilos para el scrollbar horizontal */
+.custom-table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.custom-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-table-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.custom-table-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Paginación estilizada */
+.pagination {
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.pagination .page-link {
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 8px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+}
+
+.pagination .page-link:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Summary información */
+.summary {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
+/* CSS adicional para etiquetas suaves */
+
+}
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+    border-radius: 12px; /* Más redondeado como en la imagen */
+    font-weight: 500;
+    border: none; /* Sin borde para look más limpio */
+    display: inline-block;
+    margin: 2px;
+    transition: all 0.2s ease; /* Transición suave */
+}
+
+.badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Estilo especial para "Ninguno" */
+.badge.bg-light {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    border: 1px solid #e9ecef;
+}
+
+.editable-field {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    position: relative;
+}
+.editable-field:hover {
+    background-color: #f8f9fa;
+    border: 1px dashed #dee2e6;
+}
+.editable-field::after {
+    content: '✏️';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.editable-field:hover::after {
+    opacity: 0.7;
+}
+.editing {
+    background-color: #e3f2fd !important;
+    border: 1px solid #2196f3 !important;
+}
+.editing::after {
+    display: none;
+}
+.inline-input {
+    width: 100%;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 14px;
+}
+.inline-select {
+    width: 100%;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    padding: 6px;
+    font-size: 14px;
+}
+.inline-select[multiple] {
+    min-height: 120px;
+    height: auto;
+}
+.inline-select[multiple] option {
+    padding: 4px 8px;
+}
+.inline-select[multiple] option:checked {
+    background-color: #2196f3;
+    color: white;
+}
+.save-cancel-buttons {
+    margin-top: 5px;
+}
+.save-cancel-buttons .btn {
+    margin-right: 5px;
+    padding: 2px 8px;
+    font-size: 12px;
+}
+.multiselect-container {
+    background-color: #f8f9fa;
+}
+.multiselect-container .form-check {
+    margin-bottom: 8px !important;
+}
+.multiselect-container .form-check-input {
+    margin-top: 0.25rem;
+}
+.multiselect-container .form-check-label {
+    font-size: 14px;
+    line-height: 1.4;
+    padding-left: 4px;
+}
+.multiselect-container .form-check-input:checked {
+    background-color: #2196f3;
+    border-color: #2196f3;
+}
+.multiselect-container .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+/* Estilo para encabezados */
+    .grid-view thead th {
+        text-align: center !important;
+        vertical-align: middle !important;
+        white-space: normal !important; /* Permite saltos de línea */
+        word-break: keep-all; /* No rompe palabras largas */
+        font-weight: bold;
+        padding: 6px 8px;
+        font-size: 13px;
+        line-height: 1.3;
+    }
+
+    /* Segunda línea del título, más pequeña y compacta */
+    .titulo-dos-lineas {
+        display: block;
+        font-size: 12px;
+        line-height: 1.1;
+    }
+
+    /* Contenido de las celdas */
+    .grid-view tbody td {
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 5px 6px;
+        font-size: 13px;
+        line-height: 1.3;
+    }
+
+        :root {
+        --printy-yellow: #FFD700; /* Amarillo corporativo */
+        --printy-black: #000000;
+        --printy-white: #FFFFFF;
+        --printy-gray: #f8f9fa;
+    }
+
+    /* === ESTILO GENERAL PARA ENCABEZADOS DE MODALES === */
+    .modal-header {
+        background-color: var(--printy-yellow) !important;
+        color: var(--printy-black) !important;
+        border-bottom: 2px solid var(--printy-black);
+        font-weight: bold;
+    }
+
+    /* Icono dentro del encabezado */
+    .modal-header i {
+        color: var(--printy-black) !important;
+    }
+
+    /* === PIE DEL MODAL === */
+    .modal-footer {
+        background-color: var(--printy-gray) !important;
+        border-top: 1px solid #ddd;
+    }
+
+    /* === BOTONES PERSONALIZADOS === */
+    .btn-printy {
+        background-color: var(--printy-yellow) !important;
+        color: var(--printy-black) !important;
+        font-weight: bold;
+        border: 1px solid var(--printy-black);
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Hover de botones Printy */
+    .btn-printy:hover {
+        background-color: #e6c200 !important;
+        color: var(--printy-black) !important;
+        transform: scale(1.05);
+    }
+
+    /* === BOTÓN CANCELAR ESTILO GRIS === */
+    .btn-cancelar {
+        background-color: #6c757d !important;
+        color: var(--printy-white) !important;
+        font-weight: bold;
+    }
+
+    .btn-cancelar:hover {
+        background-color: #5a6268 !important;
+        color: var(--printy-white) !important;
+    }
