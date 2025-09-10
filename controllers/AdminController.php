@@ -13,7 +13,6 @@ use app\models\User;
 use app\models\Role;
 use app\models\forms\UserForm;
 
-
 class AdminController extends Controller
 {
     public function behaviors()
@@ -63,9 +62,13 @@ class AdminController extends Controller
         $model = new UserForm();
         $roles = ArrayHelper::map(Role::find()->where(['activo' => 1])->all(), 'id', 'nombre');
 
-        if ($model->load(Yii::$app->request->post()) && ($user = $model->save())) {
-            Yii::$app->session->setFlash('success', 'Usuario creado.');
-            return $this->redirect(['users']);
+        if ($model->load(Yii::$app->request->post())) {
+            $user = new User(); // crear instancia nueva
+            if ($model->save($user)) { // pasarla a save()
+                Yii::$app->session->setFlash('success', 'Usuario creado.');
+                return $this->redirect(['users']);
+            }
+            // Si falla la validación/guardado, se mostrarán errores en el formulario
         }
 
         return $this->render('_form', ['model' => $model, 'roles' => $roles, 'title' => 'Crear usuario']);
@@ -98,7 +101,8 @@ class AdminController extends Controller
     public function actionAssignRole($id)
     {
         $user = $this->findUser($id);
-$roles = ArrayHelper::map(Role::find()->where(['activo' => 1])->all(), 'id', 'nombre');
+        $roles = ArrayHelper::map(Role::find()->where(['activo' => 1])->all(), 'id', 'nombre');
+
         if (Yii::$app->request->isPost) {
             $user->role_id = (int)Yii::$app->request->post('role_id');
             if ($user->save(false, ['role_id'])) {

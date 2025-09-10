@@ -20,6 +20,16 @@ $this->title = 'Permisos';
             'attribute' => 'activo',
             'value' => fn($m) => $m->activo ? 'Sí' : 'No',
         ],
-        ['class' => 'yii\grid\ActionColumn'],
+        [
+            'class' => 'yii\grid\ActionColumn',
+            'template' => '{update} {delete}', // solo Editar y Eliminar
+            'visibleButtons' => [
+                'view' => false, // oculta “ver” por si acaso
+            ],
+            // Si necesitas forzar las URLs con id:
+            // 'urlCreator' => function ($action, $model) {
+            //     return ["permisos/$action", 'id' => $model->id];
+            // },
+        ],
     ],
 ]); ?>
