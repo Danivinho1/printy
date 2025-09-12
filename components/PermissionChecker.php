@@ -1,41 +1,81 @@
 <?php
-
 namespace app\components;
 
 use Yii;
-use yii\base\Component;
+use yii\base\Behavior;
+use yii\base\ActionEvent;
+use yii\base\Module;
+use yii\web\ForbiddenHttpException;
 
-/**
- * Uso: Yii::$app->perm->can('ventas.crear')
- */
-class PermissionChecker extends Component
+class PermissionChecker extends Behavior
 {
-    public function can(string $permKey): bool
+    public function events()
     {
-        $user = Yii::$app->user->identity;
-        if (!$user) {
-            return false;
-        }
+        return [
+            Module::EVENT_BEFORE_ACTION => 'beforeAction',
+        ];
+    }
 
-        // Acceso total si el rol es admin
-        if ($user->role && (int)$user->role->es_admin === 1) {
+    public function beforeAction($event): bool
+    {
+        if (!$event instanceof ActionEvent || $event->action === null) {
             return true;
         }
 
-        [$modulo, $accion] = array_pad(explode('.', $permKey, 2), 2, null);
-        if (!$modulo || !$accion) {
+        $action = $event->action;
+        $controller = $action->controller;
+        $actionId = $action->id;
+        $route = $action->uniqueId;
+
+        // Rutas públicas (agregado site/logout)
+        $publicRoutes = [
+            'site/login',
+            'site/error',
+            'site/captcha',
+            'site/logout',
+            'debug/default/toolbar',
+            'debug/default/view',
+            'gii/default/index',
+        ];
+        if (in_array($route, $publicRoutes, true)) {
+            return true;
+        }
+
+        if (Yii::$app->user->isGuest) {
+            Yii::$app->user->loginRequired();
             return false;
         }
 
-        return (new \yii\db\Query())
-            ->from('permisos p')
-            ->innerJoin('roles_permisos rp', 'rp.permiso_id = p.id')
-            ->where([
-                'rp.role_id' => $user->role_id,
-                'p.modulo' => $modulo,
-                'p.accion' => $accion,
-                'p.activo' => 1,
-            ])
-            ->exists();
+        $controllerId = $controller->id;
+        $modulo = $this->mapModulo($controllerId);
+        $accion = $this->mapAccion($actionId);
+
+        $user = Yii::$app->user->identity;
+        if (method_exists($user, 'can') && $user->can($modulo, $accion)) {
+            return true;
+        }
+
+        throw new ForbiddenHttpException('No tienes permiso para acceder a esta acción.');
+    }
+
+    private function mapModulo(string $controllerId): string
+    {
+        $adminControllers = ['admin', 'usuario', 'role', 'permiso'];
+        if (in_array($controllerId, $adminControllers, true)) {
+            return 'admin';
+        }
+        return $controllerId;
+    }
+
+    private function mapAccion(string $accion): string
+    {
+        $map = [
+            'view'   => 'index',
+            'list'   => 'index',
+            'create' => 'create',
+            'update' => 'update',
+            'delete' => 'delete',
+        ];
+        return $map[$accion] ?? $accion;
     }
 }

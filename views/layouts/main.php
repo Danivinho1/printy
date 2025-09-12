@@ -112,13 +112,35 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
                         </button>
                     </div>
 
-                    <!-- Avatar del usuario -->
-                    <div class="relative">
-                        <button class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2 text-white hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-yellow-200 transition-all shadow-lg">
+                    <!-- Avatar del usuario con dropdown de perfil -->
+                    <div class="relative" id="profile-dropdown">
+                        <button class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2 text-white hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-yellow-200 transition-all shadow-lg inline-flex items-center"
+                                id="profile-button" aria-expanded="false" aria-haspopup="true">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
+                            <svg id="dropdown-arrow-profile" class="w-3 h-3 ml-1.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
                         </button>
+
+                        <!-- Menú perfil -->
+                        <div id="dropdown-menu-profile" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-200 rounded-md z-50">
+                            <div class="py-2">
+                                <a href="<?= Url::to(['/usuario/update', 'id' => Yii::$app->user->id]) ?>"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 no-underline">
+                                    Editar perfil
+                                </a>
+                                <?php
+                                echo Html::beginForm(['/site/logout'], 'post', ['class' => 'm-0']);
+                                echo Html::submitButton(
+                                    'Cerrar sesión',
+                                    ['class' => 'w-full text-left block px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent border-0']
+                                );
+                                echo Html::endForm();
+                                ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -130,7 +152,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-0 overflow-x-auto scrollbar-hide">
         <!-- Dashboard --> <a href="<?= Url::to(['/site/index']) ?>" 
-         class="<?= Yii::$app->controller->id === 'site' && Yii::$app->controller->action->id === 'index' ? 'text-blue-600 bg-blue-50/50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' ?> whitespace-nowrap inline-flex items-center px-4 py-4 text-sm font-medium transition-all duration-200">
+         class="<?= Yii::$app->controller->id === 'site' && Yii::$app->controller->action->id === 'index' ? 'text-blue-600 bg-blue-50/50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' ?> whitespace-nowrap inline-flex items-center px-4 py-4 text-sm font-medium transition-all duración-200">
           <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"> 
             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/> <polyline points="9,22 9,12 15,12 15,22"/> </svg> Dashboard </a> 
           <!-- Ventas con dropdown --->
@@ -198,7 +220,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
     >
         <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path d="M12 15a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3Z"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
         </svg>
         Producción
         <svg id="dropdown-arrow" class="w-3 h-3 ml-1.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -217,7 +239,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
             </a>
             <a href="<?= Url::to(['/produccion/impresion']) ?>" 
                class="<?= Yii::$app->controller->id === 'impresion' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
-                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                      block px-4 py-2 text-sm transición-colors duración-150 no-underline">
                 Impresión
             </a>
             <a href="<?= Url::to(['/produccion/corte']) ?>" 
@@ -263,7 +285,7 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
         <div class="py-2">
             <a href="<?= Url::to(['/logistica/index']) ?>" 
                class="<?= Yii::$app->controller->id === 'logistica' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
-                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                      block px-4 py-2 text-sm transition-colors duración-150 no-underline">
                 General
             </a>
             <a href="<?= Url::to(['/logistica/atencion-clientes']) ?>" 
@@ -274,6 +296,70 @@ $isDashboard = isset($this->params['is_dashboard']) && $this->params['is_dashboa
         </div>
     </div>
 </div>
+
+<?php
+// Mostrar Administración solo para usuarios con admin o permisos equivalentes
+$adminActive = in_array(Yii::$app->controller->id, ['admin','usuario','role','permiso'], true);
+$canAdmin = !Yii::$app->user->isGuest && (
+    (isset(Yii::$app->user->identity->role) && (int)Yii::$app->user->identity->role->es_admin === 1)
+    || (method_exists(Yii::$app->user->identity, 'can') && (
+        Yii::$app->user->identity->can('admin', 'all') ||
+        Yii::$app->user->identity->can('admin', 'usuarios') ||
+        Yii::$app->user->identity->can('admin', 'roles') ||
+        Yii::$app->user->identity->can('admin', 'permisos')
+    ))
+);
+?>
+<?php if ($canAdmin): ?>
+<!-- Administración con dropdown -->
+<div class="relative" id="admin-dropdown">
+    <button 
+        type="button"
+        id="admin-button"
+        aria-expanded="false"
+        aria-haspopup="true"
+        class="<?= $adminActive
+            ? 'text-blue-600 bg-blue-50/50' 
+            : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' ?> 
+            whitespace-nowrap inline-flex items-center px-4 py-4 text-sm font-medium transition-all duration-200 relative z-10"
+    >
+        <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M12 12c2.8 0 5-2.2 5-5S14.8 2 12 2 7 4.2 7 7s2.2 5 5 5Z"/>
+            <path d="M19 21a7 7 0 0 0-14 0"/>
+        </svg>
+        Administración
+        <svg id="dropdown-arrow-admin" class="w-3 h-3 ml-1.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </button>
+
+    <div id="dropdown-menu-admin" class="hidden absolute left-0 mt-1 w-56 bg-white shadow-lg border border-gray-200 rounded-md z-50">
+        <div class="py-2">
+            <a href="<?= Url::to(['/admin/index']) ?>" 
+               class="<?= Yii::$app->controller->id === 'admin' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
+                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                Panel
+            </a>
+            <a href="<?= Url::to(['/usuario/index']) ?>" 
+               class="<?= Yii::$app->controller->id === 'usuario' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
+                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                Usuarios
+            </a>
+            <a href="<?= Url::to(['/role/index']) ?>" 
+               class="<?= Yii::$app->controller->id === 'role' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
+                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                Roles
+            </a>
+            <a href="<?= Url::to(['/permiso/index']) ?>" 
+               class="<?= Yii::$app->controller->id === 'permiso' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' ?> 
+                      block px-4 py-2 text-sm transition-colors duration-150 no-underline">
+                Permisos
+            </a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
             </div>
         </div>
 
@@ -336,26 +422,24 @@ nav a {
     transform: rotate(180deg);
 }
 
-    /* Quitar apariencia de hipervínculo en todos los enlaces del menú */
-    nav a,
-    #dropdown-menu a {
+/* Quitar apariencia de hipervínculo en todos los enlaces del menú */
+nav a,
+#dropdown-menu a {
     text-decoration: none !important;
     color: inherit !important;
 }
 
-    /* Estado activo */
-    #dropdown-menu a.bg-blue-50 {
-        font-weight: 600;
-        background-color: #ebf4ff; /* Azul claro */
-    }
+/* Estado activo */
+#dropdown-menu a.bg-blue-50 {
+    font-weight: 600;
+    background-color: #ebf4ff; /* Azul claro */
+}
 
-    /* Hover */
-    #dropdown-menu a:hover {
-        background-color: #f3f4f6; /* Gris suave */
-        color: #111827; /* Gris oscuro */
-    }
-
-
+/* Hover */
+#dropdown-menu a:hover {
+    background-color: #f3f4f6; /* Gris suave */
+    color: #111827; /* Gris oscuro */
+}
 
 /* Mejorar la experiencia del dropdown en móviles */
 @media (max-width: 768px) {
@@ -369,30 +453,25 @@ nav a {
 }
 
 /* Solución 1: Estilos CSS mejorados para el dropdown */
+#produccion-dropdown { position: relative; z-index: 1000; }
 
-/* Contenedor del dropdown */
-#produccion-dropdown {
-    position: relative;
-    z-index: 1000; /* Asegurar que esté por encima de otros elementos */
-}
-
-/* Menú dropdown */
+/* Menú dropdown base */
 #dropdown-menu {
     position: absolute;
-    top: 100%; /* Posicionar justo debajo del botón */
+    top: 100%;
     left: 0;
-    z-index: 1001; /* Mayor que el contenedor padre */
+    z-index: 1001;
     background: white;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
     border: 1px solid #e5e7eb;
     border-radius: 0.375rem;
-    min-width: 12rem; /* 192px */
+    min-width: 12rem;
     width: max-content;
     overflow: visible;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all .2s cubic-bezier(.4,0,.2,1);
 }
 
 /* Mostrar dropdown */
@@ -405,37 +484,19 @@ nav a {
 /* Enlaces del dropdown */
 #dropdown-menu a {
     display: block;
-    padding: 0.5rem 1rem;
+    padding: .5rem 1rem;
     color: #374151;
     text-decoration: none !important;
-    font-size: 0.875rem;
-    transition: all 0.15s ease-in-out;
-    border-radius: 0.25rem;
-    margin: 0.125rem 0.25rem;
+    font-size: .875rem;
+    transition: all .15s ease-in-out;
+    border-radius: .25rem;
+    margin: .125rem .25rem;
 }
 
-#dropdown-menu a:hover {
-    background-color: #f3f4f6;
-    color: #111827;
-}
+#dropdown-menu a:hover { background-color: #f3f4f6; color: #111827; }
+#dropdown-menu a.bg-blue-50 { background-color: #eff6ff; color: #2563eb; font-weight: 600; }
+nav .flex { overflow: visible !important; }
 
-#dropdown-menu a.bg-blue-50 {
-    background-color: #eff6ff;
-    color: #2563eb;
-    font-weight: 600;
-}
-
-/* Flecha animada */
-.arrow-rotated {
-    transform: rotate(180deg);
-}
-
-/* Asegurar que el contenedor de navegación tenga overflow visible */
-nav .flex {
-    overflow: visible !important;
-}
-
-/* Versión móvil mejorada */
 @media (max-width: 768px) {
     #dropdown-menu {
         position: fixed !important;
@@ -444,24 +505,16 @@ nav .flex {
         transform: translateX(-50%) translateY(-10px) !important;
         width: 90vw !important;
         max-width: 300px !important;
-        margin-top: 0.5rem;
+        margin-top: .5rem;
     }
-    
-    #dropdown-menu:not(.hidden) {
-        transform: translateX(-50%) translateY(0) !important;
-    }
+    #dropdown-menu:not(.hidden) { transform: translateX(-50%) translateY(0) !important; }
 }
 
 /* Asegurar que sticky nav no interfiera */
-.sticky {
-    overflow: visible !important;
-}
+.sticky { overflow: visible !important; }
 
 /* Clase helper para debugging */
-.dropdown-debug {
-    border: 2px solid red !important;
-    background: yellow !important;
-}
+/* .dropdown-debug { border: 2px solid red !important; background: yellow !important; } */
 </style>
 
 <script>
@@ -505,6 +558,10 @@ document.addEventListener("DOMContentLoaded", function () {
     setupDropdown("produccion-button", "dropdown-menu", "dropdown-arrow");
     setupDropdown("logistica-button", "dropdown-menu-logistica", "dropdown-arrow-logistica");
     setupDropdown("ventas-button", "dropdown-menu-ventas", "dropdown-arrow-ventas");
+    // Activar para Administración (reinsertado)
+    setupDropdown("admin-button", "dropdown-menu-admin", "dropdown-arrow-admin");
+    // Nuevo: Perfil
+    setupDropdown("profile-button", "dropdown-menu-profile", "dropdown-arrow-profile");
 });
 </script>
 
@@ -513,4 +570,3 @@ document.addEventListener("DOMContentLoaded", function () {
 </body>
 </html>
 <?php $this->endPage() ?>
-

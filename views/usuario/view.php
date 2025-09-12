@@ -1,26 +1,20 @@
 <?php
-
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 
-/** @var yii\web\View $this */
-/** @var app\models\Usuario $model */
+/* @var $model app\models\Usuario */
 
-$this->title = $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Usuarios', 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
-\yii\web\YiiAsset::register($this);
+$this->title = $model->username;
 ?>
 <div class="usuario-view">
-
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Delete', ['delete', 'id' => $model->id], [
+        <?= Html::a('Actualizar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a('Eliminar', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
+                'confirm' => '¿Eliminar este usuario?',
                 'method' => 'post',
             ],
         ]) ?>
@@ -32,16 +26,17 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'username',
             'email:email',
-            'password_hash',
             'nombre_completo',
-            'role_id',
-            'activo',
-            'ultimo_login',
-            'intentos_fallidos',
-            'bloqueado_hasta',
+            [
+                'label' => 'Rol',
+                'value' => $model->role ? $model->role->nombre : '-',
+            ],
+            [
+                'attribute' => 'activo',
+                'value' => $model->activo ? 'Sí' : 'No',
+            ],
             'created_at',
             'updated_at',
         ],
     ]) ?>
-
 </div>

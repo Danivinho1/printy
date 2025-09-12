@@ -20,8 +20,10 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            // Cambiado a tu modelo de usuarios real
+            'identityClass' => \app\models\Usuario::class,
             'enableAutoLogin' => true,
+            'loginUrl' => ['site/login'],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -50,6 +52,10 @@ $config = [
             ],
         ],
         */
+    ],
+    // Registro global del validador de permisos
+    'as access' => [
+        'class' => \app\components\PermissionChecker::class,
     ],
     'params' => $params,
 ];

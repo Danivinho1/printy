@@ -1,51 +1,29 @@
 <?php
-
-use app\models\Usuario;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\helpers\Html;
 
-/** @var yii\web\View $this */
-/** @var yii\data\ActiveDataProvider $dataProvider */
+/* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = 'Usuarios';
-$this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="usuario-index">
-
     <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('Create Usuario', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
-
-
+    <p><?= Html::a('Crear Usuario', ['create'], ['class' => 'btn btn-success']) ?></p>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
             'id',
             'username',
             'email:email',
-            'password_hash',
-            'nombre_completo',
-            //'role_id',
-            //'activo',
-            //'ultimo_login',
-            //'intentos_fallidos',
-            //'bloqueado_hasta',
-            //'created_at',
-            //'updated_at',
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Usuario $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                'label' => 'Rol',
+                'value' => fn($model) => $model->role ? $model->role->nombre : '-',
             ],
+            [
+                'attribute' => 'activo',
+                'value' => fn($model) => $model->activo ? 'Sí' : 'No',
+            ],
+            ['class' => 'yii\grid\ActionColumn'],
         ],
-    ]); ?>
-
-
+    ]) ?>
 </div>
