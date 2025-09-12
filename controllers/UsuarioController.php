@@ -11,13 +11,19 @@ use yii\web\NotFoundHttpException;
 class UsuarioController extends Controller
 {
     public function actionIndex()
-    {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Usuario::find()->with('role')->orderBy(['id' => SORT_DESC]),
-            'pagination' => ['pageSize' => 20],
-        ]);
-        return $this->render('index', compact('dataProvider'));
-    }
+{
+    $searchModel = new \app\models\UsuarioSearch();
+    $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
+
+    // Para evitar N+1 y ordenar como lo tenías
+    $dataProvider->query->with('role')->orderBy(['id' => SORT_DESC]);
+    $dataProvider->pagination = ['pageSize' => 20];
+
+    return $this->render('index', [
+        'searchModel'  => $searchModel,
+        'dataProvider' => $dataProvider,
+    ]);
+}
 
     public function actionView($id)
     {
