@@ -19,8 +19,11 @@ class DisenoController extends Controller
 {
     public function actionIndex()
 {
+
+
     $searchModel = new DisenoSearch();
     $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
 
     return $this->render('index', [
         'searchModel' => $searchModel,
@@ -63,7 +66,7 @@ class DisenoController extends Controller
     // Acción para obtener opciones de multiselect
     public function actionGetMultiselectOptions()
     {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->format = Response::FORMAT_JSON;
         
         if (!Yii::$app->request->isAjax) {
             return ['options' => []];
@@ -81,7 +84,7 @@ class DisenoController extends Controller
             $tipoBusqueda = isset($tipoMapping[$type]) ? $tipoMapping[$type] : $type;
             
             if (in_array($tipoBusqueda, ['adicionales', 'extras'])) {
-                $options = \app\models\Catalogos::find()
+                $options = Catalogos::find()
                     ->select(['id as value', 'nombre as text'])
                     ->where(['tipo' => $tipoBusqueda, 'activo' => 1])
                     ->orderBy('orden ASC, nombre ASC')
@@ -103,13 +106,13 @@ class DisenoController extends Controller
     // Acción para actualizar campos simples
     public function actionUpdateField()
 {
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    Yii::$app->response->format = Response::FORMAT_JSON;
 
     $id = Yii::$app->request->post('id');
     $field = Yii::$app->request->post('field');
     $value = Yii::$app->request->post('value');
 
-    $model = \app\models\Diseno::findOne($id);
+    $model = Diseno::findOne($id);
     if (!$model) return ['success'=>false,'message'=>'Registro no encontrado'];
 
     $model->$field = $value;
@@ -135,7 +138,7 @@ class DisenoController extends Controller
     // Acción para actualizar campos many-to-many (extras, adicionales)
     public function actionUpdateManyToMany()
 {
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    Yii::$app->response->format = Response::FORMAT_JSON;
 
     $post = Yii::$app->request->post();
     $id = $post['id'] ?? null;
@@ -233,7 +236,7 @@ private function generateBadgeContent($values, $field)
     }
 
     // Obtener los nombres de los elementos seleccionados
-    $catalogos = \app\models\Catalogos::find()
+    $catalogos = Catalogos::find()
         ->select(['id', 'nombre'])
         ->where(['id' => $values])
         ->all();
@@ -295,12 +298,12 @@ private function generateManyToManyContent($disenoId, $field)
     $ventaId = $diseno->venta->id;
     
     if ($field === 'adicionales') {
-        $items = \app\models\Catalogos::find()
+        $items = Catalogos::find()
             ->innerJoin('ventas_adicionales', 'catalogos.id = ventas_adicionales.adicional_id')
             ->where(['ventas_adicionales.venta_id' => $ventaId])
             ->all();
     } else {
-        $items = \app\models\Catalogos::find()
+        $items = Catalogos::find()
             ->innerJoin('ventas_extras', 'catalogos.id = ventas_extras.extra_id')
             ->where(['ventas_extras.venta_id' => $ventaId])
             ->all();
@@ -314,7 +317,7 @@ private function generateManyToManyContent($disenoId, $field)
     foreach ($items as $item) {
         $colores = $generarColorUnico($item->nombre);
         $badges .= '<span class="badge me-1 mb-1" style="background-color: ' . $colores['bg'] . '; color: ' . $colores['text'] . ';">' . 
-                  \yii\helpers\Html::encode($item->nombre) . '</span>';
+                  Html::encode($item->nombre) . '</span>';
     }
     
     return $badges;
@@ -410,12 +413,12 @@ private function generateManyToManyContent($disenoId, $field)
 }
    public function actionUpdateFecha()
 {
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    Yii::$app->response->format = Response::FORMAT_JSON;
 
     $id = Yii::$app->request->post('id');
     $fecha = Yii::$app->request->post('fecha_confirmacion');
 
-    $model = \app\models\Diseno::findOne($id);
+    $model = Diseno::findOne($id);
     if (!$model) {
         return ['success' => false, 'message' => 'Modelo no encontrado'];
     }

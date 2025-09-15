@@ -3,6 +3,8 @@
 namespace app\controllers;
 
 use app\models\Produccion;
+use app\models\Catalogos;
+use yii\db\Expression;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -40,10 +42,32 @@ class ProduccionController extends Controller
      */
     public function actionIndex()
 {
-    $dataProvider = new \yii\data\ActiveDataProvider([
-        'query' => Produccion::find()->with('venta'),
+    // Obtener el ID del estatus "Listo" desde catalogos
+    $listoId = Catalogos::find()->select('id')->where(['nombre' => 'Listo'])->scalar();
+
+    $query = Produccion::find()
+        ->alias('p')
+        ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
+        ->andWhere(['d.estatus_id' => $listoId]);
+
+    // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
+    $query->addOrderBy(new Expression("
+        CASE
+            WHEN v.fecha_entrega IS NOT NULL THEN 1
+            WHEN e.nombre = 'Urgente' THEN 2
+            ELSE 3
+        END ASC,
+        CASE
+            WHEN v.fecha_entrega IS NOT NULL THEN v.fecha_entrega
+            ELSE NOW()
+        END ASC
+    "));
+    $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
+
+    $dataProvider = new ActiveDataProvider([
+        'query' => $query,
         'pagination' => ['pageSize' => 20],
-        'sort' => ['defaultOrder' => ['id' => SORT_DESC]],
+        'sort' => false, // ya definimos el orden manualmente
     ]);
 
     return $this->render('index', [
@@ -53,8 +77,8 @@ class ProduccionController extends Controller
     
     public function actionImpresion()
 {
-    $dataProvider = new \yii\data\ActiveDataProvider([
-        'query' => \app\models\Produccion::find(),
+    $dataProvider = new ActiveDataProvider([
+        'query' => Produccion::find(),
         'pagination' => [
             'pageSize' => 20, // Puedes cambiar el número de registros por página
         ],
@@ -67,8 +91,8 @@ class ProduccionController extends Controller
     
     public function actionCorte()
 {
-    $dataProvider = new \yii\data\ActiveDataProvider([
-        'query' => \app\models\Produccion::find(),
+    $dataProvider = new ActiveDataProvider([
+        'query' => Produccion::find(),
         'pagination' => [
             'pageSize' => 20, // Puedes cambiar el número de registros por página
         ],
@@ -81,8 +105,8 @@ class ProduccionController extends Controller
 
     public function actionFabricacion()
 {
-    $dataProvider = new \yii\data\ActiveDataProvider([
-        'query' => \app\models\Produccion::find(),
+    $dataProvider = new ActiveDataProvider([
+        'query' => Produccion::find(),
         'pagination' => [
             'pageSize' => 20, // Puedes cambiar el número de registros por página
         ],
@@ -217,7 +241,7 @@ public function actionToggleField()
     $field = Yii::$app->request->post('field');
     $value = Yii::$app->request->post('value');
 
-    $model = \app\models\Produccion::findOne($id);
+    $model = Produccion::findOne($id);
     if($model && $field == 'empaquetado_id'){
         $model->$field = $value;
         if($model->save(false)){
