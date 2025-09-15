@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\helpers\Url;
+use yii\widgets\ActiveForm;
 
 $this->title = 'Dashboard de Ventas';
 $this->params['breadcrumbs'][] = ['label' => 'Ventas', 'url' => ['index']];
@@ -120,9 +121,12 @@ $diferenciaMeta = $totalDinero - $metaDinero;
             <div class="row">
                 <div class="col-md-8">
                     <div class="action-buttons">
-                        <?= Html::a('<i class="fas fa-download me-2"></i>Exportar Datos', ['export'], [
-                            'class' => 'btn btn-outline-info btn-sm me-2'
+                        <?= Html::a('<i class="fas fa-download me-2"></i>Exportar Dashboard', ['export-dashboard'], [
+                            'class' => 'btn btn-outline-info btn-sm me-2',
+                            'data-bs-toggle' => 'tooltip',
+                            'title' => 'Exportar reporte completo del dashboard con todas las secciones'
                         ]) ?>
+
                         <?= Html::a('<i class="fas fa-print me-2"></i>Imprimir', '#', [
                             'class' => 'btn btn-outline-secondary btn-sm me-2',
                             'onclick' => 'window.print(); return false;'
@@ -144,71 +148,121 @@ $diferenciaMeta = $totalDinero - $metaDinero;
         <div class="kpi-grid-expanded mb-5">
 
             <!-- Meta Unidades -->
-            <div class="kpi-card-pro kpi-success">
-                <div class="kpi-header flex items-center justify-between">
-                    <!-- Contenedor del icono + título -->
-                    <div class="flex items-center gap-3">
-                        <!-- Icono de caja -->
-                        <div class="kpi-icon bg-warning flex items-center justify-center rounded-full w-10 h-10 shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path d="M3 7l9-4 9 4-9 4-9-4z" />
-                                <path d="M3 7v10l9 4 9-4V7" />
-                            </svg>
-                        </div>
-                        <!-- Texto al lado del icono -->
-                        <p class="text-gray-900 font-bold text-lg m-0 leading-tight">Meta Unidades</p>
-                    </div>
-                    <!-- Badge de porcentaje -->
-                    <div class="kpi-trend">
-                        <span class="badge badge-soft-warning text-base px-3 py-1"><?= $porcentajeUnidades ?>%</span>
-                    </div>
-                </div>
-
-                <!-- Contenido KPI -->
-                <div class="kpi-content mt-2">
-                    <h3 class="kpi-value text-2xl font-extrabold text-gray-800">
-                        <?= DashboardHelper::formatearNumero($metaUnidades) ?>
-                    </h3>
-                    <div class="progress-wrapper mt-2">
-                        <div class="progress progress-sm h-2 rounded-full overflow-hidden">
-                            <div class="progress-bar bg-warning" style="width: <?= min($porcentajeUnidades, 100) ?>%"></div>
-                        </div>
-                        <small class="progress-text text-gray-600"><?= $porcentajeUnidades ?>% completado</small>
-                    </div>
-                </div>
+<div class="kpi-card-pro kpi-success"> 
+    <div class="kpi-header flex items-center justify-between">
+        <!-- Contenedor del icono + título -->
+        <div class="flex items-center gap-3">
+            <!-- Icono de caja -->
+            <div class="kpi-icon bg-warning flex items-center justify-center rounded-full w-10 h-10 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M3 7l9-4 9 4-9 4-9-4z" />
+                    <path d="M3 7v10l9 4 9-4V7" />
+                </svg>
             </div>
+            <!-- Texto al lado del icono -->
+            <p class="text-gray-900 font-bold text-lg m-0 leading-tight">Meta Unidades</p>
+        </div>
+        <!-- Badge de porcentaje -->
+        <div class="kpi-trend">
+            <span class="badge badge-soft-warning text-base px-3 py-1" id="porcentaje-unidades"><?= $porcentajeUnidades ?>%</span>
+        </div>
+    </div>
 
-            <!-- Meta Mensual Dinero -->
-            <div class="kpi-card-pro kpi-success">
-                <div class="kpi-header flex items-center justify-between">
-                    <!-- Contenedor del icono + título -->
-                    <div class="flex items-center gap-3">
-                        <div class="kpi-icon bg-success flex items-center justify-center rounded-full w-10 h-10 shadow-md">
-                            <span class="text-white text-xl font-extrabold">$</span>
-                        </div>
-                        <!-- Texto al lado del icono -->
-                        <p class="text-gray-900 font-bold text-lg m-0 leading-tight">Meta Dinero</p>
-                    </div>
-                    <!-- Badge de porcentaje -->
-                    <div class="kpi-trend">
-                        <span class="badge badge-soft-success text-base px-3 py-1"><?= $porcentajeDinero ?>%</span>
-                    </div>
-                </div>
-
-                <!-- Contenido KPI -->
-                <div class="kpi-content mt-2">
-                    <h3 class="kpi-value text-2xl font-extrabold text-gray-800">
-                        <?= DashboardHelper::formatearMoneda($metaDinero) ?>
-                    </h3>
-                    <div class="progress-wrapper mt-2">
-                        <div class="progress progress-sm h-2 rounded-full overflow-hidden">
-                            <div class="progress-bar bg-success" style="width: <?= min($porcentajeDinero, 100) ?>%"></div>
-                        </div>
-                        <small class="progress-text text-gray-600"><?= $porcentajeDinero ?>% completado</small>
-                    </div>
-                </div>
+    <!-- Contenido KPI -->
+    <div class="kpi-content mt-2">
+        <div class="editable-value" onclick="editarValor('unidades')">
+            <h3 class="kpi-value text-2xl font-extrabold text-gray-800" id="valor-unidades">
+                <?= DashboardHelper::formatearNumero($metaUnidades) ?>
+            </h3>
+            <input type="number" class="edit-input d-none" id="input-unidades" value="<?= $metaUnidades ?>" min="0" step="1">
+            <div class="edit-hint">Haz clic para editar</div>
+        </div>
+        <div class="progress-wrapper mt-2">
+            <div class="progress progress-sm h-2 rounded-full overflow-hidden">
+                <div class="progress-bar bg-warning" id="progress-unidades" style="width: <?= min($porcentajeUnidades, 100) ?>%"></div>
             </div>
+            <small class="progress-text text-gray-600" id="texto-progress-unidades"><?= $porcentajeUnidades ?>% completado</small>
+        </div>
+    </div>
+</div>
 
+<!-- Meta Mensual Dinero -->
+<div class="kpi-card-pro kpi-success">
+    <div class="kpi-header flex items-center justify-between">
+        <!-- Contenedor del icono + título -->
+        <div class="flex items-center gap-3">
+            <div class="kpi-icon bg-success flex items-center justify-center rounded-full w-10 h-10 shadow-md">
+                <span class="text-white text-xl font-extrabold">$</span>
+            </div>
+            <!-- Texto al lado del icono -->
+            <p class="text-gray-900 font-bold text-lg m-0 leading-tight">Meta Dinero</p>
+        </div>
+        <!-- Badge de porcentaje -->
+        <div class="kpi-trend">
+            <span class="badge badge-soft-success text-base px-3 py-1" id="porcentaje-dinero"><?= $porcentajeDinero ?>%</span>
+        </div>
+    </div>
+
+    <!-- Contenido KPI -->
+    <div class="kpi-content mt-2">
+        <div class="editable-value" onclick="editarValor('dinero')">
+            <h3 class="kpi-value text-2xl font-extrabold text-gray-800" id="valor-dinero">
+                <?= DashboardHelper::formatearMoneda($metaDinero) ?>
+            </h3>
+            <input type="number" class="edit-input d-none" id="input-dinero" value="<?= $metaDinero ?>" min="0" step="0.01">
+            <div class="edit-hint">Haz clic para editar</div>
+        </div>
+        <div class="progress-wrapper mt-2">
+            <div class="progress progress-sm h-2 rounded-full overflow-hidden">
+                <div class="progress-bar bg-success" id="progress-dinero" style="width: <?= min($porcentajeDinero, 100) ?>%"></div>
+            </div>
+            <small class="progress-text text-gray-600" id="texto-progress-dinero"><?= $porcentajeDinero ?>% completado</small>
+        </div>
+    </div>
+</div>
+
+<style>
+.editable-value {
+    cursor: pointer;
+    position: relative;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.editable-value:hover {
+    background-color: #f9fafb;
+    box-shadow: 0 0 0 1px #d1d5db;
+}
+
+.edit-input {
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    background-color: white;
+    outline: none;
+    width: 100%;
+}
+
+.edit-input:focus {
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-hint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.editable-value:hover .edit-hint {
+    opacity: 1;
+}
+</style>
         </div>
 
         <!-- Resumen Ejecutivo - AHORA VA DESPUÉS DE LOS KPIs -->
@@ -236,10 +290,12 @@ $diferenciaMeta = $totalDinero - $metaDinero;
                                                 <span class="badge bg-info"><?= $porcentajeUnidades ?>%</span>
                                             </div>
                                         </div>
-                                        <div class="progress progress-enhanced mb-2">
-                                            <div class="progress-bar bg-info" style="width: <?= min($porcentajeUnidades, 100) ?>%"></div>
+                                        <div class="progress-enhanced">
+                                            <div class="progress-bar bg-info" 
+                                                 style="width: <?= (int)min($porcentajeUnidades, 100) ?>%;"></div>
                                         </div>
-                                        <small class="text-muted">
+
+                                        <small>
                                             <?= DashboardHelper::formatearNumero($totalUnidades) ?> de <?= DashboardHelper::formatearNumero($metaUnidades) ?> unidades
                                         </small>
                                     </div>
@@ -248,18 +304,20 @@ $diferenciaMeta = $totalDinero - $metaDinero;
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="progress-label">Ingresos Totales</span>
                                             <div class="progress-badges">
-                                                <span class="badge bg-success"><?= $porcentajeDinero ?>%</span>
+                                                <span class="badge bg-success"><?= (int)$porcentajeDinero ?>%</span>
                                             </div>
                                         </div>
-                                        <div class="progress progress-enhanced mb-2">
-                                            <div class="progress-bar bg-success" style="width: <?= min($porcentajeDinero, 100) ?>%"></div>
-                                        </div>
-                                        <small class="text-muted">
-                                            <?= DashboardHelper::formatearMoneda($totalDinero) ?> de <?= DashboardHelper::formatearMoneda($metaDinero) ?>
-                                        </small>
+
+                                        <div class="progress-enhanced">
+                                        <div class="progress-bar bg-success" 
+                                          style="width: <?= (int)min($porcentajeDinero, 100) ?>%;"></div>
                                     </div>
-                                </div>
-                            </div>
+                                    <small>
+                                        <?= DashboardHelper::formatearMoneda($totalDinero) ?> de <?= DashboardHelper::formatearMoneda($metaDinero) ?>
+                                    </small>
+                             </div>
+                            </div>             
+                         </div>
 
                             <!-- Métricas Clave -->
                             <div class="col-xl-4 col-lg-6 mb-4">
@@ -338,6 +396,7 @@ $diferenciaMeta = $totalDinero - $metaDinero;
 
     </div>
 </div>
+
 
 <style>
 /* Estilos para las nuevas clases de Tailwind */
@@ -482,53 +541,171 @@ $diferenciaMeta = $totalDinero - $metaDinero;
             </div>
 
 
-        <!-- Performance Team -->
-        <div class="row mb-4">
-            <!-- Top Asesores -->
-            <div class="col-xl-6 col-lg-6 mb-4">
-                <div class="card card-pro">
-                    <div class="card-header card-header-pro">
-                        <h6 class="card-title mb-0">
-                            <i class="fas fa-user-tie text-primary me-2"></i>
-                            Top Asesores de Ventas
-                        </h6>
-                        <small class="text-muted">Rendimiento del equipo</small>
-                    </div>
-                    <div class="card-body">
-                        <?php if (empty($conteoAsesores)): ?>
-                            <div class="empty-state-pro">
-                                <i class="fas fa-users fa-2x text-muted mb-2"></i>
-                                <p class="text-muted mb-0">No hay datos de asesores</p>
-                            </div>
-                        <?php else: ?>
-                            <div class="ranking-list-pro">
-                                <?php foreach (array_slice($conteoAsesores, 0, 5, true) as $index => $asesor): ?>
-                                    <?php $colores = DashboardHelper::generarColorUnico($asesor['nombre']); ?>
-                                    <div class="ranking-item-pro">
-                                        <div class="ranking-position">
-                                            <span class="position-number" style="background-color: <?= $colores['bg'] ?>; color: <?= $colores['text'] ?>;">
-                                                <?= $index + 1 ?>
-                                            </span>
-                                        </div>
-                                        <div class="ranking-details">
-                                            <h6 class="ranking-title"><?= Html::encode($asesor['nombre']) ?></h6>
-                                            <p class="ranking-subtitle text-muted">
-                                                <?= $asesor['cantidad'] ?> ventas realizadas
-                                            </p>
-                                        </div>
-                                        <div class="ranking-value text-end">
-                                            <span class="value-amount"><?= DashboardHelper::formatearMoneda($asesor['total_ventas']) ?></span>
-                                            <small class="text-muted d-block">
-                                                Prom: <?= DashboardHelper::formatearMoneda($asesor['total_ventas'] / $asesor['cantidad']) ?>
-                                            </small>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
+        <!-- Performance Team - Todos los Asesores -->
+<div class="col-xl-6 col-lg-6 mb-4">
+    <div class="card card-pro">
+        <div class="card-header card-header-pro">
+            <h6 class="card-title mb-0">
+                <i class="fas fa-users text-primary me-2"></i>
+                Todos los Asesores de Ventas
+            </h6>
+            <small class="text-muted">Rendimiento completo del equipo</small>
+        </div>
+        <div class="card-body">
+            <?php if (empty($conteoAsesores)): ?>
+                <div class="empty-state-pro">
+                    <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No hay datos de asesores</p>
+                </div>
+            <?php else: ?>
+                <!-- Resumen del equipo -->
+                <div class="team-summary mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h6 class="mb-1 text-primary"><?= count($conteoAsesores) ?></h6>
+                            <small class="text-muted">Asesores Activos</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="mb-1 text-success"><?= array_sum(array_column($conteoAsesores, 'cantidad')) ?></h6>
+                            <small class="text-muted">Ventas Totales</small>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="mb-1 text-info"><?= DashboardHelper::formatearMoneda(array_sum(array_column($conteoAsesores, 'total_ventas'))) ?></h6>
+                            <small class="text-muted">Total Equipo</small>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Lista completa con scroll -->
+                <div class="ranking-list-pro" style="max-height: 400px; overflow-y: auto;">
+                    <?php 
+                    $totalAsesores = count($conteoAsesores);
+                    $position = 1;
+                    foreach ($conteoAsesores as $asesor): 
+                        $colores = DashboardHelper::generarColorUnico($asesor['nombre']);
+                        $promedioVenta = $asesor['total_ventas'] / $asesor['cantidad'];
+                        
+                        // Calcular badge de rendimiento
+                        $maxVentas = max(array_column($conteoAsesores, 'total_ventas'));
+                        $rendimientoPercent = ($asesor['total_ventas'] / $maxVentas) * 100;
+                        
+                        $badgeClass = 'bg-secondary';
+                        $badgeText = 'Regular';
+                        if ($rendimientoPercent >= 80) {
+                            $badgeClass = 'bg-success';
+                            $badgeText = 'Excelente';
+                        } elseif ($rendimientoPercent >= 60) {
+                            $badgeClass = 'bg-warning';
+                            $badgeText = 'Bueno';
+                        } elseif ($rendimientoPercent >= 40) {
+                            $badgeClass = 'bg-info';
+                            $badgeText = 'Promedio';
+                        }
+                    ?>
+                        <div class="ranking-item-pro" style="border-left: 4px solid <?= $colores['bg'] ?>;">
+                            <div class="ranking-position">
+                                <span class="position-number" style="background-color: <?= $colores['bg'] ?>; color: <?= $colores['text'] ?>;">
+                                    <?= $position ?>
+                                </span>
+                            </div>
+                            <div class="ranking-details flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="ranking-title mb-1"><?= Html::encode($asesor['nombre']) ?></h6>
+                                        <p class="ranking-subtitle text-muted mb-1">
+                                            <?= $asesor['cantidad'] ?> ventas realizadas
+                                        </p>
+                                    </div>
+                                    <span class="badge <?= $badgeClass ?> badge-sm"><?= $badgeText ?></span>
+                                </div>
+                                
+                                <!-- Barra de progreso de rendimiento -->
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar" 
+                                         style="width: <?= $rendimientoPercent ?>%; background-color: <?= $colores['bg'] ?>;">
+                                    </div>
+                                </div>
+                                <small class="text-muted"><?= round($rendimientoPercent, 1) ?>% de las ventas</small>
+                            </div>
+                            <div class="ranking-value text-end">
+                                <span class="value-amount"><?= DashboardHelper::formatearMoneda($asesor['total_ventas']) ?></span>
+                                <small class="text-muted d-block">
+                                    Prom: <?= DashboardHelper::formatearMoneda($promedioVenta) ?>
+                                </small>
+                            </div>
+                        </div>
+                    <?php 
+                        $position++;
+                    endforeach; ?>
+                </div>
+                
+                <!-- Footer con estadísticas adicionales -->
+                <div class="mt-3 pt-3 border-top">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <small class="text-muted">Promedio por asesor:</small>
+                            <p class="mb-0 fw-bold"><?= DashboardHelper::formatearMoneda(array_sum(array_column($conteoAsesores, 'total_ventas')) / count($conteoAsesores)) ?></p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Ventas por asesor:</small>
+                            <p class="mb-0 fw-bold"><?= round(array_sum(array_column($conteoAsesores, 'cantidad')) / count($conteoAsesores), 1) ?></p>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos adicionales para el widget completo */
+.ranking-list-pro {
+    /* Scroll personalizado */
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.ranking-list-pro::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ranking-list-pro::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+}
+
+.ranking-list-pro::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+.ranking-list-pro::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+.ranking-item-pro {
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.ranking-item-pro:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.team-summary {
+    border: 1px solid #e2e8f0;
+}
+
+.progress {
+    background-color: #e2e8f0;
+}
+</style>
 
             <!-- Canales de Venta -->
             <div class="col-xl-6 col-lg-6 mb-4">
@@ -577,837 +754,327 @@ $diferenciaMeta = $totalDinero - $metaDinero;
             </div>
         </div>
 
-<?php
-// JavaScript mejorado y corregido
-$this->registerJs("
-$(document).ready(function() {
-    // Configuración de tooltips
-    $('[data-bs-toggle=\"tooltip\"]').tooltip();
+
+<script>
+// Variables globales - valores iniciales desde PHP
+const datosActuales = {
+    unidades: <?= $totalUnidades ?>,
+    dinero: <?= $totalDinero ?>
+};
+
+let editandoActualmente = null;
+let guardandoEnProceso = false;
+
+function formatearNumero(numero) {
+    return new Intl.NumberFormat('es-ES').format(numero);
+}
+
+function formatearMoneda(numero) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+    }).format(numero);
+}
+
+function calcularPorcentaje(actual, meta) {
+    return Math.min(Math.round((actual / meta) * 100), 100);
+}
+
+function actualizarKPI(tipo, nuevoValor = null) {
+    const actual = datosActuales[tipo];
+    const inputElement = document.getElementById(`input-${tipo}`);
     
-    // Actualización automática cada 5 minutos
-    let autoRefreshInterval = setInterval(function() {
-        showRefreshNotification();
-    }, 300000);
+    // Usar nuevo valor si se proporciona, sino usar el del input
+    const meta = nuevoValor || parseFloat(inputElement.value);
     
-    // Función para mostrar notificación de actualización
-    function showRefreshNotification() {
-        const notification = $('<div class=\"refresh-notification-pro\">' +
-            '<div class=\"notification-content\">' +
-                '<i class=\"fas fa-sync-alt fa-spin me-2\"></i>' +
-                '<span>Actualizando datos...</span>' +
-            '</div>' +
-            '</div>');
-        
-        $('body').append(notification);
-        notification.fadeIn(300);
-        
-        setTimeout(function() {
-            window.location.reload();
-        }, 2000);
+    if (meta <= 0) return;
+    
+    const porcentaje = calcularPorcentaje(actual, meta);
+    
+    // Actualizar valor mostrado
+    const valorElement = document.getElementById(`valor-${tipo}`);
+    if (tipo === 'unidades') {
+        valorElement.textContent = formatearNumero(meta);
+    } else {
+        valorElement.textContent = formatearMoneda(meta);
     }
     
-    // Botón de actualización manual
-    $('#refresh-dashboard').click(function(e) {
-        e.preventDefault();
-        showRefreshNotification();
-    });
+    // Actualizar porcentaje
+    document.getElementById(`porcentaje-${tipo}`).textContent = `${porcentaje}%`;
     
-    // Animación sutil de entrada para las tarjetas
-    $('.kpi-card-pro, .card-pro').each(function(index) {
-        $(this).css({
-            'opacity': '0',
-            'transform': 'translateY(20px)'
-        }).delay(index * 100).animate({
-            'opacity': 1
-        }, 400, function() {
-            $(this).css('transform', 'translateY(0)');
-        });
-    });
+    // Actualizar barra de progreso
+    const progressBar = document.getElementById(`progress-${tipo}`);
+    progressBar.style.width = `${porcentaje}%`;
     
-    // Efectos hover sutiles
-    $('.kpi-card-pro').hover(
-        function() {
-            $(this).css('transform', 'translateY(-3px)');
-        },
-        function() {
-            $(this).css('transform', 'translateY(0)');
-        }
-    );
+    // Actualizar texto de progreso
+    document.getElementById(`texto-progress-${tipo}`).textContent = `${porcentaje}% completado`;
     
-    // Contador animado para los KPIs - CORREGIDO
-    $('.kpi-value').each(function() {
-        const \$this = $(this);
-        const text = \$this.text();
-        
-        if (text.match(/^\$?[\d,]+/)) {
-            const finalNumber = parseFloat(text.replace(/[\$,]/g, ''));
-            if (!isNaN(finalNumber) && finalNumber > 0) {
-                \$this.text('0');
-                \$({ counter: 0 }).animate({ counter: finalNumber }, {
-                    duration: 1500,
-                    step: function() {
-                        const format = text.includes('\
-                                        ) ? '\
-                                         + Math.floor(this.counter).toLocaleString() : Math.floor(this.counter).toLocaleString();
-                        \$this.text(format);
-                    },
-                    complete: function() {
-                        \$this.text(text);
-                    }
-                });
-            }
-        }
-    });
+    // Actualizar el input con el nuevo valor
+    inputElement.value = meta;
+}
+
+function editarValor(tipo) {
+    if (editandoActualmente && editandoActualmente !== tipo) {
+        cancelarEdicion(editandoActualmente);
+    }
     
-    // Smooth scrolling para navegación interna
-    \$('a[href^=\"#\"]').on('click', function(e) {
-        e.preventDefault();
-        const target = \$(this.getAttribute('href'));
-        if (target.length) {
-            \$('html, body').animate({
-                scrollTop: target.offset().top - 100
-            }, 800);
-        }
-    });
+    editandoActualmente = tipo;
     
-    // Lazy loading para mejorar rendimiento
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    img.classList.remove('lazy');
-                    imageObserver.unobserve(img);
+    const valorElement = document.getElementById(`valor-${tipo}`);
+    const inputElement = document.getElementById(`input-${tipo}`);
+    
+    // Ocultar valor y mostrar input
+    valorElement.classList.add('d-none');
+    inputElement.classList.remove('d-none');
+    
+    // Enfocar el input
+    inputElement.focus();
+    inputElement.select();
+    
+    // Limpiar eventos anteriores
+    inputElement.onblur = null;
+    inputElement.onkeydown = null;
+    
+    // Variable para controlar si ya se guardó
+    let yaGuardado = false;
+    
+    // Manejar eventos
+    inputElement.onblur = () => {
+        if (!yaGuardado && !guardandoEnProceso) {
+            setTimeout(() => {
+                if (!yaGuardado && editandoActualmente === tipo && !guardandoEnProceso) {
+                    yaGuardado = true;
+                    guardarValor(tipo);
                 }
-            });
-        });
+            }, 100);
+        }
+    };
+    
+    inputElement.onkeydown = (e) => {
+        if (e.key === 'Enter' && !yaGuardado && !guardandoEnProceso) {
+            e.preventDefault();
+            yaGuardado = true;
+            guardarValor(tipo);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            yaGuardado = true; // Prevenir blur
+            cancelarEdicion(tipo);
+        }
+    };
+}
+
+function guardarValor(tipo) {
+    // Evitar múltiples llamadas simultáneas
+    if (guardandoEnProceso) {
+        return;
+    }
+    
+    const valorElement = document.getElementById(`valor-${tipo}`);
+    const inputElement = document.getElementById(`input-${tipo}`);
+    
+    const nuevoValor = parseFloat(inputElement.value);
+    
+    if (nuevoValor > 0) {
+        guardandoEnProceso = true;
         
-        document.querySelectorAll('img[data-src]').forEach(img => imageObserver.observe(img));
+        // Mostrar indicador de carga
+        mostrarCargando(tipo, true);
+        
+        // Guardar en la base de datos
+        guardarEnBaseDatos(tipo, nuevoValor)
+            .then(response => {
+                if (response.success) {
+                    // Actualizar KPI con el nuevo valor
+                    actualizarKPI(tipo, nuevoValor);
+                    
+                    // Mostrar mensaje de éxito
+                    mostrarMensaje(response.message || `Meta de ${tipo} actualizada correctamente`, 'success');
+                } else {
+                    // Restaurar valor anterior en caso de error
+                    inputElement.value = tipo === 'unidades' ? <?= $metaUnidades ?> : <?= $metaDinero ?>;
+                    mostrarMensaje(response.message || 'Error al actualizar la meta', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Restaurar valor anterior
+                inputElement.value = tipo === 'unidades' ? <?= $metaUnidades ?> : <?= $metaDinero ?>;
+                mostrarMensaje('Error de conexión. Intente nuevamente.', 'error');
+            })
+            .finally(() => {
+                mostrarCargando(tipo, false);
+                guardandoEnProceso = false;
+            });
+    } else {
+        mostrarMensaje('El valor debe ser mayor a 0', 'error');
     }
     
-    // Log para debugging
-    console.log('Dashboard profesional cargado exitosamente - ' + new Date().toLocaleString());
+    // Volver al estado normal
+    inputElement.classList.add('d-none');
+    valorElement.classList.remove('d-none');
+    editandoActualmente = null;
+}
+
+function cancelarEdicion(tipo) {
+    const valorElement = document.getElementById(`valor-${tipo}`);
+    const inputElement = document.getElementById(`input-${tipo}`);
+    
+    // Restaurar valor original
+    const metaOriginal = tipo === 'unidades' ? <?= $metaUnidades ?> : <?= $metaDinero ?>;
+    inputElement.value = metaOriginal;
+    
+    // Volver al estado normal
+    inputElement.classList.add('d-none');
+    valorElement.classList.remove('d-none');
+    editandoActualmente = null;
+}
+
+function guardarEnBaseDatos(tipo, valor) {
+    // Determinar la URL según el tipo
+    const urls = {
+        'unidades': '<?= yii\helpers\Url::to(["actualizar-meta-unidades"]) ?>',
+        'dinero': '<?= yii\helpers\Url::to(["actualizar-meta-dinero"]) ?>'
+    };
+    
+    // Determinar el parámetro según el tipo
+    const params = {
+        'unidades': { 'meta_unidades': valor },
+        'dinero': { 'meta_dinero': valor }
+    };
+    
+    // Agregar CSRF token para Yii2
+    const formData = new FormData();
+    formData.append('_csrf', $('meta[name="csrf-token"]').attr('content'));
+    
+    // Agregar parámetros específicos
+    Object.keys(params[tipo]).forEach(key => {
+        formData.append(key, params[tipo][key]);
+    });
+    
+    return fetch(urls[tipo], {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error de red');
+        }
+        return response.json();
+    });
+}
+
+function mostrarCargando(tipo, mostrar) {
+    const valorElement = document.getElementById(`valor-${tipo}`);
+    
+    if (mostrar) {
+        valorElement.style.opacity = '0.5';
+        valorElement.style.pointerEvents = 'none';
+    } else {
+        valorElement.style.opacity = '1';
+        valorElement.style.pointerEvents = 'auto';
+    }
+}
+
+function mostrarMensaje(mensaje, tipo) {
+    // Usar el sistema de notificaciones de Yii2 si está disponible
+    if (typeof krajeeDialog !== 'undefined') {
+        if (tipo === 'success') {
+            krajeeDialog.alert(mensaje, {type: krajeeDialog.TYPE_SUCCESS});
+        } else {
+            krajeeDialog.alert(mensaje, {type: krajeeDialog.TYPE_DANGER});
+        }
+        return;
+    }
+    
+    // Si usas Toastr
+    if (typeof toastr !== 'undefined') {
+        if (tipo === 'success') {
+            toastr.success(mensaje);
+        } else {
+            toastr.error(mensaje);
+        }
+        return;
+    }
+    
+    // Si usas Bootstrap toasts
+    if (typeof bootstrap !== 'undefined') {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white ${tipo === 'success' ? 'bg-success' : 'bg-danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${mensaje}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        const toastInstance = new bootstrap.Toast(toast);
+        toastInstance.show();
+        return;
+    }
+    
+    // Fallback: alert simple
+    alert(mensaje);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Función para sincronizar datos desde el servidor (opcional)
+function sincronizarMetas() {
+    fetch('<?= yii\helpers\Url::to(["obtener-metas"]) ?>', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar datos globales
+            datosActuales.unidades = data.data.total_unidades;
+            datosActuales.dinero = data.data.total_dinero;
+            
+            // Actualizar KPIs
+            actualizarKPI('unidades', data.data.meta_unidades);
+            actualizarKPI('dinero', data.data.meta_dinero);
+        }
+    })
+    .catch(error => {
+        console.error('Error al sincronizar metas:', error);
+    });
+}
+
+// Manejar clics fuera de los inputs para cancelar edición
+document.addEventListener('click', function(e) {
+    // Solo actuar si hay algo editándose y el clic no es dentro del área editable
+    if (editandoActualmente && !e.target.closest('.editable-value') && !e.target.closest('.edit-input')) {
+        // No llamar guardarValor aquí, el blur ya lo maneja
+        // Solo cancelar la edición si se hace clic muy lejos
+        setTimeout(() => {
+            if (editandoActualmente && !guardandoEnProceso) {
+                cancelarEdicion(editandoActualmente);
+            }
+        }, 150);
+    }
 });
-");
 
-// CSS discreto y profesional
-$this->registerCss("
-/* Variables CSS para consistencia */
-:root {
-    --primary-color: #3182ce;
-    --secondary-color: #718096;
-    --success-color: #38a169;
-    --info-color: #3182ce;
-    --warning-color: #d69e2e;
-    --danger-color: #e53e3e;
-    --light-color: #f7fafc;
-    --dark-color: #2d3748;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
-    --border-radius: 8px;
-    --border-radius-lg: 12px;
-}
-
-/* Container principal más amplio */
-.dashboard-professional {
-    background-color: #f8fafc;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-}
-
-/* Header profesional */
-.dashboard-header-pro {
-    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1.5rem 0;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-sm);
-}
-
-.dashboard-title-pro {
-    color: var(--dark-color);
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.dashboard-subtitle-pro {
-    color: var(--secondary-color);
-    font-size: 0.95rem;
-    margin: 0;
-}
-
-.separator-pro {
-    margin: 0 0.75rem;
-    opacity: 0.6;
-}
-
-/* Acciones rápidas */
-.quick-actions-pro {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1rem 0;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-}
-
-.action-buttons .btn {
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-.period-selector {
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-
-/* Grid de KPIs expandido */
-.kpi-grid-expanded {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-}
-
-/* KPI Cards profesionales */
-.kpi-card-pro {
-    background: white;
-    border-radius: var(--border-radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.kpi-card-pro::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--secondary-color);
-}
-
-.kpi-card-pro.kpi-primary::before { background: var(--primary-color); }
-.kpi-card-pro.kpi-success::before { background: var(--success-color); }
-.kpi-card-pro.kpi-info::before { background: var(--info-color); }
-.kpi-card-pro.kpi-warning::before { background: var(--warning-color); }
-.kpi-card-pro.kpi-danger::before { background: var(--danger-color); }
-
-.kpi-card-pro:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
-.kpi-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.kpi-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
-
-.kpi-trend {
-    display: flex;
-    align-items: center;
-    font-size: 0.875rem;
-}
-
-.kpi-content .kpi-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--dark-color);
-    margin-bottom: 0.25rem;
-}
-
-.kpi-content .kpi-label {
-    font-size: 0.875rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-
-.kpi-content .kpi-secondary {
-    font-size: 0.875rem;
-    color: var(--secondary-color);
-}
-
-/* Progress bars discretos */
-.progress-wrapper {
-    margin-top: 1rem;
-}
-
-.progress-sm {
-    height: 6px;
-}
-
-.progress {
-    background-color: #e2e8f0;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-text {
-    color: var(--secondary-color);
-    margin-top: 0.25rem;
-}
-
-/* Badges suaves */
-.badge-soft-info {
-    background-color: rgba(49, 130, 206, 0.1);
-    color: var(--info-color);
-}
-
-.badge-soft-warning {
-    background-color: rgba(214, 158, 46, 0.1);
-    color: var(--warning-color);
-}
-
-/* Cards profesionales */
-.card-pro {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-}
-
-.card-pro:hover {
-    box-shadow: var(--shadow-md);
-}
-
-.card-header-pro {
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    border-bottom: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    padding: 1rem 1.5rem;
-}
-
-.card-title {
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-.card-summary {
-    border: 2px solid var(--border-color);
-}
-
-/* Ranking lists profesionales */
-.ranking-list-pro {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.ranking-list-pro::-webkit-scrollbar {
-    width: 4px;
-}
-
-.ranking-list-pro::-webkit-scrollbar-track {
-    background: var(--light-color);
-}
-
-.ranking-list-pro::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
-}
-
-.ranking-item-pro {
-    display: flex;
-    align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f1f5f9;
-    transition: all 0.2s ease;
-}
-
-.ranking-item-pro:hover {
-    background-color: #f8fafc;
-    border-radius: 6px;
-    margin: 0 -0.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-
-.ranking-item-pro:last-child {
-    border-bottom: none;
-}
-
-.ranking-position {
-    margin-right: 1rem;
-    flex-shrink: 0;
-}
-
-.position-number,
-.position-star {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-weight: 600;
-    font-size: 0.875rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.ranking-details {
-    flex: 1;
-    min-width: 0;
-}
-
-.ranking-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--dark-color);
-    margin-bottom: 0.25rem;
-    line-height: 1.3;
-}
-
-.ranking-subtitle {
-    font-size: 0.8rem;
-    margin: 0;
-    line-height: 1.2;
-}
-
-.ranking-value {
-    flex-shrink: 0;
-    text-align: right;
-}
-
-.value-amount {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-/* Empty states */
-.empty-state-pro {
-    text-align: center;
-    padding: 2.5rem 1rem;
-    color: var(--secondary-color);
-}
-
-/* Progress Analysis */
-.progress-analysis {
-    space-y: 1.5rem;
-}
-
-.analysis-item {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #f8fafc;
-    border-radius: var(--border-radius);
-    border-left: 3px solid var(--info-color);
-}
-
-.analysis-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.analysis-label {
-    font-weight: 500;
-    color: var(--dark-color);
-    font-size: 0.9rem;
-}
-
-.analysis-value {
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.metric-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.metric-card {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    background: white;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-}
-
-.metric-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.75rem;
-    color: white;
-    font-size: 1.1rem;
-}
-
-.metric-info h4 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    color: var(--dark-color);
-}
-
-.metric-info span {
-    font-size: 0.8rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-}
-
-/* Section titles */
-.section-title {
-    color: var(--dark-color);
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-/* Progress section mejorada */
-.progress-section {
-    space-y: 1.5rem;
-}
-
-.progress-item-expanded {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #f8fafc;
-    border-radius: var(--border-radius);
-}
-
-.progress-label {
-    font-weight: 500;
-    color: var(--dark-color);
-    font-size: 0.9rem;
-}
-
-.progress-badges .badge {
-    font-weight: 600;
-}
-
-.progress-enhanced {
-    height: 8px;
-    background-color: #e2e8f0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* Metrics Summary */
-.metrics-summary {
-    space-y: 1rem;
-}
-
-.summary-metric {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: var(--border-radius);
-    border-left: 3px solid var(--warning-color);
-    margin-bottom: 1rem;
-}
-
-.metric-icon-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    color: white;
-    font-size: 1rem;
-}
-
-.metric-details {
-    flex: 1;
-}
-
-.metric-details h5 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    color: var(--dark-color);
-}
-
-.metric-details span {
-    font-size: 0.875rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-}
-
-.metric-amount {
-    font-size: 0.875rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-}
-
-/* Performance Grid */
-.performance-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.performance-card {
-    display: flex;
-    align-items: flex-start;
-    padding: 1rem;
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    transition: all 0.2s ease;
-}
-
-.performance-card:hover {
-    box-shadow: var(--shadow-sm);
-}
-
-.performance-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.75rem;
-    color: white;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.performance-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.performance-info h4 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-    color: var(--dark-color);
-    line-height: 1.2;
-}
-
-.performance-info span {
-    font-size: 0.875rem;
-    color: var(--secondary-color);
-    font-weight: 500;
-    display: block;
-    margin-bottom: 0.25rem;
-}
-
-.performance-info small {
-    font-size: 0.75rem;
-}
-
-.performance-progress {
-    margin-top: 0.5rem;
-}
-
-.mini-progress {
-    width: 100%;
-    height: 3px;
-    background-color: #e2e8f0;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.mini-progress-bar {
-    height: 100%;
-    background-color: var(--primary-color);
-    transition: width 0.3s ease;
-}
-
-/* Notification profesional */
-.refresh-notification-pro {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    background: white;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    display: none;
-    min-width: 200px;
-}
-
-.notification-content {
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    color: var(--dark-color);
-    font-weight: 500;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .kpi-grid-expanded {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    }
-    
-    .performance-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .container-fluid {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    
-    .kpi-grid-expanded {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .dashboard-title-pro {
-        font-size: 1.75rem;
-    }
-    
-    .quick-actions-pro .row {
-        flex-direction: column;
-    }
-    
-    .action-buttons {
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-    
-    .period-selector {
-        justify-content: center;
-    }
-    
-    .metric-cards {
-        grid-template-columns: 1fr;
-    }
-    
-    .performance-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .ranking-item-pro {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .ranking-value {
-        width: 100%;
-        text-align: left;
-        margin-top: 0.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .kpi-card-pro {
-        padding: 1rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .summary-metric {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.5rem;
-    }
-    
-    .metric-amount {
-        margin-top: 0.5rem;
-    }
-}
-
-/* Animaciones sutiles */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.kpi-card-pro,
-.card-pro {
-    animation: slideIn 0.4s ease-out forwards;
-}
-
-/* Estados para diferentes colores de background */
-.bg-primary { background-color: var(--primary-color) !important; }
-.bg-secondary { background-color: var(--secondary-color) !important; }
-.bg-success { background-color: var(--success-color) !important; }
-.bg-info { background-color: var(--info-color) !important; }
-.bg-warning { background-color: var(--warning-color) !important; }
-.bg-danger { background-color: var(--danger-color) !important; }
-
-/* Print styles */
-@media print {
-    .dashboard-professional {
-        background: white !important;
-    }
-    
-    .dashboard-header-pro,
-    .quick-actions-pro {
-        box-shadow: none !important;
-        border: 1px solid #ddd !important;
-    }
-    
-    .kpi-card-pro,
-    .card-pro {
-        break-inside: avoid;
-        box-shadow: none !important;
-        border: 1px solid #ddd !important;
-    }
-    
-    .header-actions,
-    .refresh-notification-pro {
-        display: none !important;
-    }
-}
-
-/* Mejoras en accesibilidad */
-.btn:focus,
-.card:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-.progress-bar {
-    transition: width 0.6s ease;
-}
-
-/* Estados hover mejorados */
-.kpi-card-pro:hover .kpi-icon {
-    transform: scale(1.05);
-}
-
-.ranking-item-pro:hover .position-number,
-.ranking-item-pro:hover .position-star {
-    transform: scale(1.1);
-}
-");
+// Inicializar cuando el documento esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Si quieres sincronizar automáticamente cada cierto tiempo
+    // setInterval(sincronizarMetas, 60000); // Cada minuto
+});
+</script>
