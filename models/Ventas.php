@@ -111,6 +111,7 @@ class Ventas extends \yii\db\ActiveRecord
     public function getCampaña() { return $this->hasOne(Catalogos::class, ['id' => 'campaña_id']); }
     public function getCreatedBy() { return $this->hasOne(Usuarios::class, ['id' => 'created_by']); }
     public function getDisenos() { return $this->hasMany(Diseno::class, ['venta_id' => 'id']); }
+    public function getDiseno() { return $this->hasMany(Diseno::class, ['venta_id' => 'id']); }
     public function getEntrega() { return $this->hasOne(Catalogos::class, ['id' => 'entrega_id']); }
     public function getLogisticas() { return $this->hasMany(Logistica::class, ['venta_id' => 'id']); }
     public function getMedio() { return $this->hasOne(Catalogos::class, ['id' => 'medio_id']); }

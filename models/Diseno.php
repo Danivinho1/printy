@@ -221,6 +221,28 @@ public function afterFind()
             $this->adicionales_ids = $this->venta->getAdicionalesIds();
         }
     }
+public function beforeSave($insert)
+{
+    if (!parent::beforeSave($insert)) {
+        return false;
+    }
+
+    // Solo al crear (insertar)
+    if ($insert && empty($this->estatus_id)) {
+        // Buscar el ID de "Pendiente" en catalogos
+        $estatusPendiente = \app\models\Catalogos::find()
+            ->where(['tipo' => 'estatus', 'nombre' => 'Pendiente'])
+            ->select('id')
+            ->scalar();
+
+        if ($estatusPendiente) {
+            $this->estatus_id = $estatusPendiente;
+        }
+    }
+
+    return true;
+}
+
 
     public function afterSave($insert, $changedAttributes)
 {
@@ -246,7 +268,7 @@ public function afterFind()
 
     // Sincronizar extra_precio en ventas
     if (array_key_exists('extra_precio', $changedAttributes)) {
-        \Yii::$app->db->createCommand()
+        Yii::$app->db->createCommand()
             ->update('ventas', ['extra_precio' => $this->extra_precio], ['id' => $this->venta_id])
             ->execute();
     }
