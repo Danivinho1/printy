@@ -31,7 +31,7 @@ use Yii;
  * @property Catalogos $especificaciones
  * @property Catalogos $estatus
  * @property Produccion[] $produccions
- * @property Usuarios $responsable
+ * @property Usuario $responsable
  * @property Catalogos $vectorizado
  * @property Ventas $venta
  */
@@ -169,7 +169,7 @@ class Diseno extends \yii\db\ActiveRecord
      */
     public function getResponsable()
     {
-        return $this->hasOne(Usuarios::class, ['id' => 'responsable_id']);
+        return $this->hasOne(Usuario::class, ['id' => 'responsable_id']);
     }
 
     /**
