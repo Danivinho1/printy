@@ -13,6 +13,11 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\BadRequestHttpException;
 use yii\helpers\Html;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 
 class DisenoController extends Controller
@@ -436,6 +441,128 @@ private function generateManyToManyContent($disenoId, $field)
 
     return ['success' => false, 'message' => 'No se pudo guardar'];
 }
+ public function actionExportExcel()
+{
+    $disenos = Diseno::find()->all();
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
 
+    // Título
+    $mes = date('F Y');
+    $sheet->setCellValue('A1', "Diseños del mes: $mes");
+    $sheet->mergeCells('A1:N1');
+    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+    $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+    // Encabezados
+    $headers = [
+        'ID','Tipo Letrero','Nombre Letrero','Entrega','Adicionales','Extras',
+        'Teléfono','Responsable','Precio Extra','Fecha Confirmación','Vectorizado',
+        'Contacto Cliente','Avance','Estatus'
+    ];
+    $col = 'A';
+    foreach ($headers as $header) {
+        $sheet->setCellValue($col.'2', $header);
+        $sheet->getStyle($col.'2')->getFont()->setBold(true);
+        $col++;
+    }
+
+    // Función de color igual que en badges
+    $getBadgeColor = function($nombre){
+        if (!$nombre) return ['bg'=>'CCCCCC','text'=>'000000'];
+        $hash = substr(md5($nombre),0,6);
+        return ['bg'=>$hash,'text'=>'FFFFFF'];
+    };
+
+    $row = 3;
+    foreach($disenos as $diseño){
+        $sheet->setCellValue('A'.$row, $diseño->id);
+
+        // Tipo Letrero
+        $tipo = $diseño->tipoLetrero->nombre ?? 'No definido';
+        $color = $getBadgeColor($tipo);
+        $sheet->setCellValue('B'.$row, $tipo);
+        $sheet->getStyle('B'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+        $sheet->getStyle('B'.$row)->getFont()->getColor()->setRGB($color['text']);
+
+        // Nombre Letrero
+        $sheet->setCellValue('C'.$row, $diseño->nombre_letrero);
+
+        // Entrega
+        $entrega = $diseño->entrega->nombre ?? 'No definido';
+        $color = $getBadgeColor($entrega);
+        $sheet->setCellValue('D'.$row, $entrega);
+        $sheet->getStyle('D'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+        $sheet->getStyle('D'.$row)->getFont()->getColor()->setRGB($color['text']);
+
+        // Adicionales
+        $sheet->setCellValue('E'.$row, $diseño->adicionalesNombres);
+
+        // Extras
+        $sheet->setCellValue('F'.$row, $diseño->extrasNombres);
+
+        // Teléfono
+        $sheet->setCellValue('G'.$row, $diseño->telefono);
+
+        // Responsable
+        $responsable = $diseño->responsable->nombre ?? 'Sin asignar';
+        $color = $getBadgeColor($responsable);
+        $sheet->setCellValue('H'.$row, $responsable);
+        $sheet->getStyle('H'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+        $sheet->getStyle('H'.$row)->getFont()->getColor()->setRGB($color['text']);
+
+        // Precio Extra
+        $extra = $diseño->extra_precio ?? 0;
+        $sheet->setCellValue('I'.$row, $extra);
+        $sheet->getStyle('I'.$row)->getNumberFormat()->setFormatCode('$#,##0.00');
+
+        // Fecha Confirmación
+        $fechaConf = $diseño->fecha_confirmacion ? Yii::$app->formatter->asDate($diseño->fecha_confirmacion,'php:d/m/Y') : 'Pendiente';
+        $sheet->setCellValue('J'.$row, $fechaConf);
+
+        // Vectorizado
+        $vectorizado = $diseño->vectorizado_id == 1 ? '✓' : '✗';
+        $sheet->setCellValue('K'.$row, $vectorizado);
+        $sheet->getStyle('K'.$row)->getFont()->setBold(true);
+        $sheet->getStyle('K'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Contacto Cliente
+        $contacto = $diseño->contacto_cliente_id == 1 ? '✓' : '✗';
+        $sheet->setCellValue('L'.$row, $contacto);
+        $sheet->getStyle('L'.$row)->getFont()->setBold(true);
+        $sheet->getStyle('L'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Avance
+        $sheet->setCellValue('M'.$row, $diseño->avance.'%');
+
+        // Estatus
+        $estatus = $diseño->estatus->nombre ?? 'Pendiente';
+        $colores = match($estatus){
+            'Pendiente'=>['bg'=>'dc3545','text'=>'ffffff'],
+            'Listo'=>['bg'=>'28a745','text'=>'ffffff'],
+            default => $getBadgeColor($estatus)
+        };
+        $sheet->setCellValue('N'.$row, $estatus);
+        $sheet->getStyle('N'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($colores['bg']);
+        $sheet->getStyle('N'.$row)->getFont()->getColor()->setRGB($colores['text']);
+
+        $row++;
+    }
+
+    // Auto-ajustar columnas
+    foreach(range('A','N') as $colID){
+        $sheet->getColumnDimension($colID)->setAutoSize(true);
+    }
+
+    $writer = new Xlsx($spreadsheet);
+    $fileName = "disenos_$mes.xlsx";
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment;filename=\"$fileName\"");
+    header('Cache-Control: max-age=0');
+
+    $writer->save('php://output');
+    exit;
+}
 
 }
