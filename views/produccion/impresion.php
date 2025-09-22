@@ -47,6 +47,21 @@ function generarColorUnico($texto) {
                     <div class="nombre-letrero">
                         <h6><?= Html::encode($model->nombre_letrero) ?></h6>
                     </div>
+
+                    <!-- Entrega -->
+                    <div class="entrega">
+                        <?php 
+                        $entregaNombre = $model->venta->entrega->nombre ?? null;
+                        if ($entregaNombre): 
+                            $colores = generarColorUnico($entregaNombre);
+                        ?>
+                            <span class="badge" style="background-color: <?= $colores['bg'] ?>; color: <?= $colores['text'] ?>;">
+                                <?= Html::encode($entregaNombre) ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">No definido</span>
+                        <?php endif; ?>
+                    </div>
                     
                     <!-- Unidades -->
                     <div class="unidades">
@@ -55,20 +70,40 @@ function generarColorUnico($texto) {
                     
                     <!-- Estado/Toggle -->
                     <div class="estado-toggle">
-                        <?php $checked = $model->diseno_impresion == 1; ?>
-                        <label class="toggle-checkbox">
-                            <input type="checkbox" 
-                                   class="toggle-input" 
-                                   <?= $checked ? 'checked' : '' ?>
-                                   data-id="<?= $model->id ?>"
-                                   data-field="diseno_impresion">
-                            <span class="toggle-slider">
-                                <span class="toggle-text">
-                                    <?= $checked ? 'Listo' : 'Pendiente' ?>
-                                </span>
-                            </span>
-                        </label>
-                    </div>
+                    <!-- Diseño/Impresión -->
+                    <label class="toggle-checkbox">
+                    <input type="checkbox" 
+                       class="toggle-input" 
+                       <?= $model->diseno_impresion == 1 ? 'checked' : '' ?>
+                       data-id="<?= $model->id ?>"
+                       data-field="diseno_impresion"
+                       data-text-on="Listo"
+                       data-text-off="Pendiente">
+                <span class="toggle-slider">
+                    <span class="toggle-text">
+                        <?= $model->diseno_impresion == 1 ? 'Listo' : 'Pendiente' ?>
+                    </span>
+                </span>
+            </label>
+
+            <!-- Vector -->
+            <?php $checked = $model->vector_listo == 1; ?>
+            <label class="toggle-checkbox" data-field="vector_listo">
+                <input type="checkbox" 
+                       class="toggle-input" 
+                       <?= $checked ? 'checked' : '' ?>
+                       data-id="<?= $model->id ?>"
+                       data-field="vector_listo"
+                       data-text-on="Vector Enviado"
+                       data-text-off="Vector pendiente">
+                <span class="toggle-slider">
+                    <span class="toggle-text">
+                        <?= $checked ? "Vector\nEnviado" : "Vector\nPendiente" ?>
+                    </span>
+                </span>
+            </label>
+
+            </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -158,6 +193,16 @@ $this->registerCss("
     cursor: pointer;
 }
 
+/* Toggle específico vector */
+.toggle-checkbox[data-field='vector_listo'] .toggle-text {
+    font-size: 0.65rem;        /* más pequeño */
+    line-height: 0.8rem;       /* controlar separación entre líneas */
+    white-space: pre-line;      /* respetar saltos de línea */
+    text-align: center;
+    padding-left: 2px;          /* ajuste fino horizontal */
+    padding-right: 2px;
+}
+
 .toggle-input {
     opacity: 0;
     width: 0;
@@ -171,7 +216,7 @@ $this->registerCss("
     right: 0;
     bottom: 0;
     background-color: #dc3545;
-    border-radius: 20px;
+    border-radius: 10px;
     transition: all 0.4s ease;
     display: flex;
     align-items: center;
@@ -181,29 +226,35 @@ $this->registerCss("
 .toggle-text {
     color: white;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.65rem; /* texto más pequeño */
+    line-height: 1.1rem; /* ajustar altura de línea */
+    text-align: center;  /* centrado, útil para vector */
+    white-space: normal; /* permite salto de línea */
     transition: all 0.3s ease;
 }
+
 
 .toggle-input:checked + .toggle-slider {
     background-color: #28a745;
 }
 
 .toggle-input:checked + .toggle-slider:before {
-    transform: translateX(26px);
+    transform: translateX(5px);
 }
 
 .toggle-slider:before {
     content: '';
     position: absolute;
-    height: 32px;
-    width: 32px;
+    height: 26px; /* reducido */
+    width: 26px;  /* reducido */
     left: 4px;
     background-color: white;
     border-radius: 50%;
     transition: all 0.4s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 1; /* debajo del texto */
 }
+
 
 .toggle-input:checked + .toggle-slider:before {
     transform: translateX(60px);
@@ -283,6 +334,7 @@ $this->registerCss("
 ");
 
 // JS para actualizar con AJAX
+
 $csrf = Yii::$app->request->getCsrfToken();
 $this->registerJs("
 $(document).on('change', '.toggle-input', function() {
@@ -291,45 +343,38 @@ $(document).on('change', '.toggle-input', function() {
     var id = input.data('id');
     var field = input.data('field');
     var isChecked = input.is(':checked');
-    
-    // Prevenir múltiples clicks
+
     if (checkbox.hasClass('loading')) {
         input.prop('checked', !isChecked);
         return;
     }
-    
-    // Agregar estado de carga
+
     checkbox.addClass('loading');
-    
+
     $.post('" . \yii\helpers\Url::to(['/produccion/toggle']) . "', {
         id: id,
         field: field,
         _csrf: '$csrf'
     })
-    .done(function(data){
-        if(data.success){
-            // Actualizar texto del toggle
-            var toggleText = checkbox.find('.toggle-text');
-            toggleText.text(data.value == 1 ? 'Listo' : 'Pendiente');
-            
-            // Asegurar que el checkbox esté en el estado correcto
+    .done(function(data) {
+        var toggleText = checkbox.find('.toggle-text');
+        var onText = input.data('text-on') || 'Listo';
+        var offText = input.data('text-off') || 'Pendiente';
+
+        if (data.success) {
+            toggleText.text(data.value == 1 ? onText : offText);
             input.prop('checked', data.value == 1);
-        } else if(data.error){
-            // Revertir el estado si hay error
+        } else if (data.error) {
             input.prop('checked', !isChecked);
             alert('Error: ' + data.error);
         }
     })
-    .fail(function(){
-        // Revertir el estado si falla la petición
+    .fail(function() {
         input.prop('checked', !isChecked);
         alert('Error de conexión. Inténtalo de nuevo.');
     })
-    .always(function(){
-        // Remover estado de carga
-        setTimeout(function(){
-            checkbox.removeClass('loading');
-        }, 300);
+    .always(function() {
+        checkbox.removeClass('loading');
     });
 });
 ");

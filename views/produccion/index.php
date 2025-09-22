@@ -1,6 +1,6 @@
 <?php
 
-use app\models\Produccion;
+use app\models\ProduccionSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
@@ -46,12 +46,110 @@ foreach (\app\models\Catalogos::find()->where(['tipo'=>'empaquetado'])->all() as
 $optionsEmpaquetadoJson = htmlspecialchars(json_encode($optionsEmpaquetadoArray), ENT_QUOTES, 'UTF-8');
 
 ?>
+
+
 <div class="produccion-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
+     <?php
+
+// En tu controlador o al inicio de la vista
+$filtroEstatus = null;
+if (isset($_GET['ProduccionSearch']['estatus'])) {
+    $filtroEstatus = $_GET['ProduccionSearch']['estatus'];
+}
+
+// Obtener conteos usando el ProduccionSearch
+$conteos = ProduccionSearch::getFiltrosConteos();
+$totalRegistros = $conteos['total'];
+$urgentesCount = $conteos['urgentes'];
+$pendientesCount = $conteos['pendientes'];
+$listosCount = $conteos['listos'];
+$porVencerCount = $conteos['por_vencer'];
+
+// Función para mantener otros filtros en las URLs
+function buildFilterUrl($newFilters = []) {
+    $currentParams = Yii::$app->request->queryParams;
+
+    // Remover parámetros de paginación para reset
+    unset($currentParams['page']);
+
+    $params = array_merge($currentParams, $newFilters);
+
+    // Remover parámetros vacíos o null
+    foreach ($params as $key => $value) {
+        if (is_array($value)) {
+            foreach ($value as $subKey => $subValue) {
+                if ($subValue === null || $subValue === '' || $subValue === 'todos') {
+                    unset($params[$key][$subKey]);
+                }
+            }
+            if (empty($params[$key])) {
+                unset($params[$key]);
+            }
+        } else {
+            if ($value === null || $value === '' || $value === 'todos') {
+                unset($params[$key]);
+            }
+        }
+    }
+
+    return Url::current($params);
+}
+?>
+
+<div class="filtros-produccion mb-4 d-flex justify-content-between align-items-center">
+    <!-- Filtros a la izquierda -->
+    <div class="d-flex align-items-center gap-2">
+        <!-- Botón Todos -->
+        <a href="<?= Url::to(['produccion/index']) ?>" 
+           class="btn-filtro <?= !$filtroEstatus ? 'active' : '' ?>">
+            Todos (<?= $totalRegistros ?>)
+        </a>
+
+        <!-- Filtro Urgentes -->
+        <a href="<?= Url::to(['produccion/index', 'ProduccionSearch[estatus]' => 'urgente']) ?>" 
+           class="btn-filtro btn-danger <?= $filtroEstatus == 'urgente' ? 'active' : '' ?>">
+             Urgentes (<?= $urgentesCount ?>)
+        </a>
+
+        <!-- Filtro Por vencer -->
+        <a href="<?= Url::to(['produccion/index', 'ProduccionSearch[estatus]' => 'por_vencer']) ?>" 
+           class="btn-filtro btn-warning <?= $filtroEstatus == 'por_vencer' ? 'active' : '' ?>">
+            🔥 Por vencer (<?= $porVencerCount ?>)
+        </a>
+
+        <!-- Filtro Pendientes -->
+        <a href="<?= Url::to(['produccion/index', 'ProduccionSearch[estatus]' => 'pendiente']) ?>" 
+           class="btn-filtro btn-pendiente <?= $filtroEstatus == 'pendiente' ? 'active' : '' ?>">
+            Pendientes (<?= $pendientesCount ?>)
+        </a>
+
+        <!-- Filtro Listos -->
+        <a href="<?= Url::to(['produccion/index', 'ProduccionSearch[estatus]' => 'listo']) ?>" 
+           class="btn-filtro btn-listo <?= $filtroEstatus == 'listo' ? 'active' : '' ?>">
+            Listos (<?= $listosCount ?>)
+        </a>
+    </div>
+
+    <!-- Botón Exportar a la derecha -->
+    <div>
+        <?= Html::a('<i class="fas fa-file-excel me-2"></i>Exportar a Excel', 
+            ['export-excel'], 
+            [
+                'class' => 'btn btn-light border btn-sm',
+                'title' => 'Descargar todos los datos en Excel',
+                'data-bs-toggle' => 'tooltip',
+                'data-bs-placement' => 'top'
+            ]) 
+        ?>
+    </div>
+</div>
+    
 
     <?= CustomGridView::widget([
         'dataProvider' => $dataProvider,
+        'summary' => false,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
@@ -72,6 +170,22 @@ $optionsEmpaquetadoJson = htmlspecialchars(json_encode($optionsEmpaquetadoArray)
                     return $model->nombre_letrero;
                 },
             ],
+            [
+                'format' => 'raw',
+                'value' => function($model) {
+                    $entregaNombre = $model->venta->entrega->nombre ?? null;
+                    
+                    if (!$entregaNombre) {
+                        return '<span class="badge bg-secondary">No definido</span>';
+                   }
+
+                    $colores = generarColorUnico($entregaNombre);
+                    return '<span class="badge" style="background-color: ' . $colores['bg'] . '; color: ' . $colores['text'] . ';">' . 
+                           $entregaNombre . '</span>';
+                },
+                'label' => 'Entrega'
+            ],
+
             [
                 'attribute' => 'disenador_id',
                 'format' => 'raw',
@@ -131,39 +245,67 @@ $optionsEmpaquetadoJson = htmlspecialchars(json_encode($optionsEmpaquetadoArray)
             ],
 
             [
-                'attribute' => 'fecha_confirmacion',
+                'attribute' => 'fecha_entrega',
+                'label' => 'Fecha de Entrega',
                 'format' => 'raw',
-                'label' => 'Fecha Confirmación',
                 'value' => function($model) {
-                    if (empty($model->fecha_confirmacion)) {
-                        return '<span class="badge bg-warning text-dark fecha-confirmacion-badge" data-id="'.$model->id.'">Pendiente</span>';
+                    if ($model->venta && $model->venta->fecha_entrega) {
+                        return Yii::$app->formatter->asDate($model->venta->fecha_entrega, 'php:d/m/Y');
                     } else {
-                        return '<span class="fecha-confirmacion-text" data-id="'.$model->id.'">'
-                            . Yii::$app->formatter->asDate($model->fecha_confirmacion, 'php:d/m/Y')
-                            . '</span>';
+                        return '<span class="badge bg-secondary">No definida</span>';
                     }
                 },
             ],
 
-            'dias_restantes',
 
-            // Editable Empaquetado
             [
-                'attribute' => 'empaquetado_id',
-                'format' => 'raw',
-                'label' => 'Estatus',
-                'value' => function($model) use ($optionsEmpaquetadoJson) {
-                    $nombre = $model->empaquetado? $model->empaquetado->nombre : 'Pendiente';
-                    $color = strtolower($nombre) === 'listo para empaquetar' ? 'green' : 'red';
-                    return "<div class='editable-empaquetado' 
-                                data-record-id='{$model->id}' 
-                                data-field-name='empaquetado_id'
-                                data-options='{$optionsEmpaquetadoJson}'
-                                style='cursor:pointer; display:inline-block;'>
-                                <span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>
-                            </div>";
-                },
-            ],
+              'attribute' => 'dias_restantes',
+              'label' => 'Días Restantes',
+              'format' => 'raw',
+              'value' => function($model) {
+                  if ($model->venta && $model->venta->fecha_entrega) {
+                      $hoy = new \DateTime();
+                      $fechaEntrega = new \DateTime($model->venta->fecha_entrega);
+          
+                      $diasHabiles = 0;
+                      $fechaIter = clone $hoy;
+          
+                      // Contar solo lunes a viernes
+                      while ($fechaIter <= $fechaEntrega) {
+                          $diaSemana = (int)$fechaIter->format('N'); // 1=lunes, 7=domingo
+                          if ($diaSemana < 6) { 
+                              $diasHabiles++;
+                          }
+                          $fechaIter->modify('+1 day');
+                      }
+          
+                      // Determinar color del badge
+                      if ($diasHabiles > 5) {
+                          $color = 'bg-success';
+                      } elseif ($diasHabiles >= 1) {
+                          $color = 'bg-warning text-dark';
+                      } else {
+                          $color = 'bg-danger';
+                      }
+          
+                      return '<span class="badge '.$color.'">'.$diasHabiles.' día'.($diasHabiles == 1 ? '' : 's').'</span>';
+                  } else {
+                      return '<span class="badge bg-secondary">No definida</span>';
+                  }
+              },
+          ],
+                      // Editable Empaquetado
+                      [
+              'attribute' => 'empaquetado_id',
+              'format' => 'raw',
+              'label' => 'Estatus',
+              'value' => function($model) {
+                            $nombre = $model->empaquetado ? $model->empaquetado->nombre : 'Pendiente';
+                  $color = strtolower($nombre) === 'listo' ? 'green' : 'red';
+                  return "<span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>";
+              }
+          ],
+
         ],
     ]); ?>
 
@@ -185,6 +327,90 @@ $this->registerCss("
 }
 .toggle-icon.checked { background-color: #28a745; }
 .toggle-icon.unchecked { background-color: #dc3545; }
+
+<style>
+.filtros-diseño {
+    background-color: #f8f9fa;
+    padding: 8px 12px; /* más compacto */
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.btn-filtro {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 4px 10px; /* reducido */
+    border-radius: 4px; /* más discreto */
+    text-decoration: none;
+    font-size: 12px; /* más pequeño */
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.btn-filtro:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    text-decoration: none;
+}
+
+.btn-filtro.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.btn-urgente.active {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.btn-urgente.active:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.btn-pendiente.active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000000;
+}
+
+.btn-pendiente.active:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.btn-listo.active {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #ffffff;
+}
+
+.btn-listo.active:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filtros-diseño .d-flex {
+        flex-wrap: wrap;
+    }
+    
+    .btn-filtro {
+        margin-bottom: 5px;
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+}
+</style>
 ");
 
 
@@ -221,7 +447,7 @@ $(document).on('click', '.editable-empaquetado', function(e) {
             value: newValue
         }, function(response) {
             if(response === 'ok') {
-                var color = newText.toLowerCase() === 'listo para empaquetar' ? 'green' : 'red';
+                var color = newText.toLowerCase() === 'listo' ? 'green' : 'red';
                 div.html('<span class="badge" style="background-color:'+color+'; color:white;">'+newText+'</span>');
             } else {
                 alert('Error al actualizar');

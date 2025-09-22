@@ -47,6 +47,21 @@ function generarColorUnico($texto) {
                     <div class="nombre-letrero">
                         <h6><?= Html::encode($model->nombre_letrero) ?></h6>
                     </div>
+
+                    <!-- Entrega -->
+                    <div class="entrega">
+                        <?php 
+                        $entregaNombre = $model->venta->entrega->nombre ?? null;
+                        if ($entregaNombre): 
+                            $colores = generarColorUnico($entregaNombre);
+                        ?>
+                            <span class="badge" style="background-color: <?= $colores['bg'] ?>; color: <?= $colores['text'] ?>;">
+                                <?= Html::encode($entregaNombre) ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">No definido</span>
+                        <?php endif; ?>
+                    </div>
                     
                     <!-- Unidades -->
                     <div class="unidades">

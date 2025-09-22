@@ -47,6 +47,21 @@ function generarColorUnico($texto) {
                     <div class="nombre-letrero">
                         <h6><?= Html::encode($model->nombre_letrero) ?></h6>
                     </div>
+
+                    <!-- Entrega -->
+                    <div class="entrega">
+                        <?php 
+                        $entregaNombre = $model->venta->entrega->nombre ?? null;
+                        if ($entregaNombre): 
+                            $colores = generarColorUnico($entregaNombre);
+                        ?>
+                            <span class="badge" style="background-color: <?= $colores['bg'] ?>; color: <?= $colores['text'] ?>;">
+                                <?= Html::encode($entregaNombre) ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">No definido</span>
+                        <?php endif; ?>
+                    </div>
                     
                     <!-- Unidades -->
                     <div class="unidades">
@@ -181,7 +196,10 @@ $this->registerCss("
 .toggle-text {
     color: white;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.65rem; /* texto más pequeño */
+    line-height: 1.1rem; /* ajustar altura de línea */
+    text-align: right;  /* centrado, útil para vector */
+    white-space: normal; /* permite salto de línea */
     transition: all 0.3s ease;
 }
 
