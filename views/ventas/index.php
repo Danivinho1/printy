@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Ventas;
+use app\models\VentasSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
@@ -23,6 +24,7 @@ if ($modeloNuevo->load(Yii::$app->request->post()) && $modeloNuevo->save()) {
 
 $this->title = 'Ventas';
 $this->params['breadcrumbs'][] = $this->title;
+
 
 
 $this->registerJs("
@@ -253,6 +255,7 @@ $(document).ready(function() {
 
 
 <?php
+
 function generarColorUnico($texto) {
     $textoLower = strtolower(trim($texto));
     
@@ -297,11 +300,38 @@ function generarColorUnico($texto) {
     <?php endif; ?>
 
     <h1 class="mb-3"><?= Html::encode($this->title) ?></h1>
+    <?php
+    // Obtener filtros actuales de la URL
+$filtroEntrega = Yii::$app->request->get('entrega');
 
-    <div class="mb-4 p-2 bg-light border rounded d-flex align-items-center">
+// Obtener conteos usando VentasSearch
+$conteos = VentasSearch::getFiltrosConteos();
+$totalRegistros = $conteos['total'];
+$urgentesCount = $conteos['urgentes'];
+
+// Función para mantener otros filtros en las URLs
+function buildFilterUrl($newFilters = []) {
+    $currentParams = Yii::$app->request->queryParams;
+
+    // Remover parámetros de paginación para reset
+    unset($currentParams['page']);
+
+    $params = array_merge($currentParams, $newFilters);
+
+    // Remover parámetros vacíos o null
+    foreach ($params as $key => $value) {
+        if ($value === null || $value === '' || $value === 'todos') {
+            unset($params[$key]);
+        }
+    }
+
+    return Url::current($params);
+}
+?>
+    <div class="mb-4 d-flex align-items-center gap-2">
     <!-- Botón Nueva Venta -->
     <button type="button" 
-            class="btn btn-success btn-lg me-2" 
+            class="btn btn-success btn-lg" 
             data-bs-toggle="modal" 
             data-bs-target="#modalNuevaVenta">
         <i class="fas fa-plus me-2"></i>
@@ -309,7 +339,7 @@ function generarColorUnico($texto) {
     </button>
 
     <!-- Botón Exportar a Excel -->
-    <?= \yii\helpers\Html::a('<i class="fas fa-file-excel me-2"></i>Exportar a Excel', 
+    <?= Html::a('<i class="fas fa-file-excel me-2"></i>Exportar a Excel', 
         ['export-excel'], 
         [
             'class' => 'btn btn-light border btn-sm',
@@ -319,6 +349,7 @@ function generarColorUnico($texto) {
         ]) 
     ?>
 </div>
+
 
    <!-- Modal para Nueva Venta -->
 <div class="modal fade" id="modalNuevaVenta" tabindex="-1" aria-labelledby="modalNuevaVentaLabel" aria-hidden="true" data-bs-backdrop="static">
@@ -349,11 +380,73 @@ function generarColorUnico($texto) {
         </div>
     </div>
 </div>
+<div class="filtros-ventas mb-4">
+    <div class="d-flex align-items-center gap-2 mb-3">
+
+        <!-- Botón Todos -->
+        <a href="<?= Url::to(['ventas/index']) ?>" 
+           class="btn-filtro <?= !$filtroEntrega ? 'active' : '' ?>">
+            Todos (<?= $totalRegistros ?>)
+        </a>
+
+        <!-- Filtro Urgentes -->
+        <a href="<?= Url::to(['ventas/index', 'entrega' => 'urgente']) ?>" 
+           class="btn-filtro btn-urgente <?= $filtroEntrega == 'urgente' ? 'active' : '' ?>">
+            Urgentes (<?= $urgentesCount ?>)
+        </a>
+
+    </div>
+</div>
+
+<style>
+.filtros-ventas {
+    background-color: #f8f9fa;
+    padding: 8px 12px; /* más compacto */
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.btn-filtro {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 4px 10px; /* reducido */
+    border-radius: 4px; /* más pequeño */
+    text-decoration: none;
+    font-size: 12px; /* más pequeño */
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.btn-filtro:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    text-decoration: none;
+}
+
+.btn-filtro.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.btn-urgente.active {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+</style>
 
 
 
     <?= CustomGridView::widget([
         'dataProvider' => $dataProvider,
+        'summary' => false,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             
