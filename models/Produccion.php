@@ -26,7 +26,7 @@ use Yii;
  * @property string $updated_at
  *
  * @property Catalogos $corte
- * @property Usuarios $disenador
+ * @property Usuario $disenador
  * @property Diseno $diseno
  * @property Catalogos $envio
  * @property Catalogos $estatusPago
@@ -61,7 +61,7 @@ class Produccion extends \yii\db\ActiveRecord
             [['venta_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ventas::class, 'targetAttribute' => ['venta_id' => 'id']],
             [['diseno_id'], 'exist', 'skipOnError' => true, 'targetClass' => Diseno::class, 'targetAttribute' => ['diseno_id' => 'id']],
             [['tipo_letrero_id'], 'exist', 'skipOnError' => true, 'targetClass' => Diseno::class, 'targetAttribute' => ['tipo_letrero_id' => 'id']],
-            [['disenador_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuarios::class, 'targetAttribute' => ['disenador_id' => 'id']],
+            [['disenador_id'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::class, 'targetAttribute' => ['disenador_id' => 'id']],
             [['corte_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['corte_id' => 'id']],
             [['fabricacion_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['fabricacion_id' => 'id']],
             [['estatus_pago_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['estatus_pago_id' => 'id']],
@@ -120,7 +120,7 @@ class Produccion extends \yii\db\ActiveRecord
      */
     public function getDisenador()
     {
-        return $this->hasOne(Usuarios::class, ['id' => 'disenador_id']);
+        return $this->hasOne(Usuario::class, ['id' => 'disenador_id']);
     }
 
     /**
@@ -205,5 +205,57 @@ class Produccion extends \yii\db\ActiveRecord
     
     return !empty($chapetones) ? implode(', ', $chapetones) : null;
 }
+
+public function afterSave($insert, $changedAttributes)
+{
+    parent::afterSave($insert, $changedAttributes);
+
+    // ID de "Listo" desde catalogos
+    $listoPId = Catalogos::find()
+        ->select('id')
+        ->where(['nombre' => 'Listo', 'tipo' => 'empaquetado'])
+        ->scalar();
+
+    $pendienteId = Catalogos::find()
+        ->select('id')
+        ->where(['nombre' => 'Pendiente', 'tipo' => 'empaquetado'])
+        ->scalar();
+
+    // Si todos los checks están listos
+    if ($this->diseno_impresion == 1 && $this->corte_listo == 1 && $this->fabricacion_listo == 1) {
+        if ($this->empaquetado_id != $listoPId) {
+            $this->updateAttributes(['empaquetado_id' => $listoPId]);
+        }
+    } else {
+        if ($this->empaquetado_id != $pendienteId) {
+            $this->updateAttributes(['empaquetado_id' => $pendienteId]);
+        }
+    }
+}
+
+
+public function beforeSave($insert)
+{
+    if (parent::beforeSave($insert)) {
+        // Si es un nuevo registro y no tiene empaquetado_id, asignar "Pendiente" de tipo "empaquetado"
+        if ($insert && empty($this->empaquetado_id)) {
+            $pendiente = \app\models\Catalogos::find()
+                ->where([
+                    'nombre' => 'Pendiente',
+                    'tipo' => 'empaquetado'  // Especificar el tipo
+                ])
+                ->one();
+                
+            if ($pendiente) {
+                $this->empaquetado_id = $pendiente->id;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+// Y también actualiza tu vista para que no muestre "Pendiente" cuando sea null:
+
 
 }

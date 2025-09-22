@@ -32,7 +32,7 @@ use Yii;
  *
  * @property Catalogos $asesor
  * @property Catalogos $campaña
- * @property Usuarios $createdBy
+ * @property Usuario $createdBy
  * @property Diseno[] $disenos
  * @property Catalogos $entrega
  * @property Logistica[] $logisticas
@@ -74,7 +74,7 @@ class Ventas extends \yii\db\ActiveRecord
             [['medio_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['medio_id' => 'id']],
             [['campaña_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['campaña_id' => 'id']],
             [['asesor_id'], 'exist', 'skipOnError' => true, 'targetClass' => Catalogos::class, 'targetAttribute' => ['asesor_id' => 'id']],
-            [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => Usuarios::class, 'targetAttribute' => ['created_by' => 'id']],
+            [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => Usuario::class, 'targetAttribute' => ['created_by' => 'id']],
         ];
     }
 
@@ -109,7 +109,7 @@ class Ventas extends \yii\db\ActiveRecord
     public function getTipoLetrero() { return $this->hasOne(Catalogos::class, ['id' => 'tipo_letrero_id']); }
     public function getAsesor() { return $this->hasOne(Catalogos::class, ['id' => 'asesor_id']); }
     public function getCampaña() { return $this->hasOne(Catalogos::class, ['id' => 'campaña_id']); }
-    public function getCreatedBy() { return $this->hasOne(Usuarios::class, ['id' => 'created_by']); }
+    public function getCreatedBy() { return $this->hasOne(Usuario::class, ['id' => 'created_by']); }
     public function getDisenos() { return $this->hasMany(Diseno::class, ['venta_id' => 'id']); }
     public function getDiseno() { return $this->hasMany(Diseno::class, ['venta_id' => 'id']); }
     public function getEntrega() { return $this->hasOne(Catalogos::class, ['id' => 'entrega_id']); }

@@ -248,7 +248,7 @@ public function beforeSave($insert)
 {
     parent::afterSave($insert, $changedAttributes);
 
-    // Actualizar Producción si la fecha o diseñador cambian
+    // 🔹 Actualizar Producción si la fecha o diseñador cambian
     $produccion = Produccion::findOne(['venta_id' => $this->venta_id]);
     if ($produccion && $this->venta) {
         $produccion->fecha_confirmacion = $this->fecha_confirmacion;
@@ -266,12 +266,46 @@ public function beforeSave($insert)
         $produccion->save(false);
     }
 
-    // Sincronizar extra_precio en ventas
+    // 🔹 Sincronizar extra_precio en ventas
     if (array_key_exists('extra_precio', $changedAttributes)) {
         Yii::$app->db->createCommand()
             ->update('ventas', ['extra_precio' => $this->extra_precio], ['id' => $this->venta_id])
             ->execute();
     }
+
+    // 🔹 Calcular fecha_entrega solo si está vacía y hay fecha_confirmacion
+    if (!empty($this->fecha_confirmacion) && $this->venta && empty($this->venta->fecha_entrega)) {
+        $fechaEntrega = $this->sumarDiasHabiles($this->fecha_confirmacion, 8);
+
+        $this->venta->fecha_entrega = $fechaEntrega;
+        $this->venta->save(false); // false para evitar validaciones extra
+    }
+}
+
+/**
+ * Suma días hábiles (omite sábados, domingos y festivos de la tabla feriados)
+ */
+private function sumarDiasHabiles($fechaInicio, $dias)
+{
+    $fecha = new \DateTime($fechaInicio);
+    $agregados = 0;
+
+    // Obtener feriados desde la BD
+    $diasFestivos = \app\models\Feriados::find()
+        ->select('fecha')
+        ->column();
+
+    while ($agregados < $dias) {
+        $fecha->modify('+1 day');
+        $diaSemana = $fecha->format('N'); // 1 = lunes, 7 = domingo
+        $formatoFecha = $fecha->format('Y-m-d');
+
+        if ($diaSemana < 6 && !in_array($formatoFecha, $diasFestivos)) {
+            $agregados++;
+        }
+    }
+
+    return $fecha->format('Y-m-d');
 }
 
 
