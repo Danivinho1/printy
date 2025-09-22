@@ -44,6 +44,13 @@ foreach (\app\models\Catalogos::find()->where(['tipo'=>'envio'])->all() as $opci
 }
 $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES, 'UTF-8');
 
+// Opciones de pago
+$optionsPagoArray = [];
+foreach (\app\models\Catalogos::find()->where(['tipo'=>'estatus_pago'])->all() as $opcion) {
+    $optionsPagoArray[] = ['id' => $opcion->id, 'nombre' => $opcion->nombre];
+}
+$optionsPagoJson = htmlspecialchars(json_encode($optionsPagoArray), ENT_QUOTES, 'UTF-8');
+
 ?>
 
 <div class="logistica-index">
@@ -125,35 +132,29 @@ $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES
                 'label' => 'Restante'
             ],
             [
-                'attribute' => 'estatus_pago',
+                'attribute' => 'estatus_pago_id',
                 'format' => 'raw',
+                            'label' => 'Estatus Pago',
                 'value' => function($model) {
-                    $restante = $model->total - $model->anticipo;
-                    $estatusText = $restante > 0 ? 'Por liquidar' : 'Liquidado';
-                    $estatusColor = $restante > 0 ? '#ffc107' : '#28a745';
-                    return Html::tag('span', $estatusText, [
-                        'id' => 'estatus-pago-' . $model->id,
-                        'class' => 'badge',
-                        'style' => 'background-color:' . $estatusColor . '; color:#fff;'
-                    ]);
-                }
-            ],
-            [
-                'attribute' => 'estatus_envio_id',
-                'format' => 'raw',
-                'label' => 'Estatus',
-                'value' => function($model) use ($optionsEnvioJson) {
-                    $nombre = $model->envio ? $model->envio->nombre : 'Pendiente';
-                    $color = strtolower($nombre) === 'enviado' ? 'green' : 'red';
-                    return "<div class='editable-envio' 
-                                data-record-id='{$model->id}' 
-                                data-field-name='estatus_envio_id'
-                                data-options='{$optionsEnvioJson}'
-                                style='cursor:pointer; display:inline-block;'>
-                                <span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>
-                            </div>";
+                    $nombre = $model->estatusPago->nombre ?? 'Pendiente'; // <- usando la relación
+                    $color = strtolower($nombre) === 'liquidado' ? '#28a745' : '#ffc107';
+            
+                    return "<span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>";
                 },
             ],
+
+            [
+                 'attribute' => 'estatus_envio_id',
+                 'format' => 'raw',
+                 'label' => 'Estatus Envío',
+                 'value' => function($model) {
+                     $nombre = $model->envio->nombre ?? 'Pendiente';
+                     $color = strtolower($nombre) === 'enviado' ? 'green' : 'red';
+             
+                     return "<span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>";
+                 },
+            ],
+
         ],
     ]); ?>
 </div>
@@ -247,42 +248,7 @@ $(document).ready(function() {
         });
     });
 
-    $(document).on('click', '.editable-envio', function(e){
-        e.stopPropagation();
-        var div = $(this);
-        var recordId = div.data('record-id');
-        var fieldName = div.data('field-name');
-        var options = div.data('options');
-        if (typeof options === 'string') options = JSON.parse(options);
-        if (div.find('select').length) return;
-        var select = $('<select class="form-select form-select-sm"></select>');
-        $.each(options, function(index, option){
-            var selected = (div.find('span').text().trim() === option.nombre) ? 'selected' : '';
-            select.append('<option value="'+option.id+'" '+selected+'>'+option.nombre+'</option>');
-        });
-        div.html(select);
-        select.focus();
-        select.on('change', function(){
-            var newValue = $(this).val();
-            var newText = $(this).find('option:selected').text();
-            $.post('index.php?r=logistica/update-envio', {
-                id: recordId,
-                field: fieldName,
-                value: newValue,
-                _csrf: yii.getCsrfToken()
-            }, function(response){
-                if(response.success){
-                    var color = newText.toLowerCase() === 'enviado' ? 'green' : 'red';
-                    div.html('<span class="badge" style="background-color:'+color+'; color:white;">'+newText+'</span>');
-                } else {
-                    console.error(response.errors || response.message);
-                    alert('Error: ' + (response.message || 'No se pudo actualizar'));
-                }
-            }, 'json');
-        });
-    });
 
 });
 JS
 );
-?>

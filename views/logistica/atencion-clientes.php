@@ -1,4 +1,5 @@
 <?php
+
 use yii\helpers\Html;
 use app\widgets\CustomGridView;
 
@@ -22,13 +23,20 @@ function generarColorUnico($texto) {
     $indice = abs($hash) % count($coloresSuaves);
     return $coloresSuaves[$indice];
 }
-// Obtener opciones de envío como array de objetos
+
+// Opciones de envío
 $optionsEnvioArray = [];
 foreach (\app\models\Catalogos::find()->where(['tipo'=>'envio'])->all() as $opcion) {
     $optionsEnvioArray[] = ['id' => $opcion->id, 'nombre' => $opcion->nombre];
 }
 $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES, 'UTF-8');
 
+// Opciones de pago
+$optionsPagoArray = [];
+foreach (\app\models\Catalogos::find()->where(['tipo'=>'estatus_pago'])->all() as $opcion) {
+    $optionsPagoArray[] = ['id' => $opcion->id, 'nombre' => $opcion->nombre];
+}
+$optionsPagoJson = htmlspecialchars(json_encode($optionsPagoArray), ENT_QUOTES, 'UTF-8');
 
 ?>
 
@@ -47,10 +55,10 @@ $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES
             <span>PRODUCCIÓN</span>
         </div>
     </div>
-
     <!-- Tabla con encabezados simples -->
     <?= CustomGridView::widget([
         'dataProvider' => $dataProvider,
+        'summary' => false,
         'tableOptions' => ['class' => 'table table-striped table-bordered custom-table'],
         'headerRowOptions' => ['class' => 'table-header'],
         'columns' => [
@@ -205,8 +213,41 @@ $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES
                     return "<div style=\"color:red; font-weight:bold;\">{$mostrar}</div>";
                 },
             ],
-
-            
+            [
+                'attribute' => 'estatus_pago_id',
+                'format' => 'raw',
+                'label' => 'Estatus Pago',
+                'value' => function($model) use ($optionsPagoJson) {
+                    $nombre = $model['pago_nombre'] ?? 'Pendiente';
+                    $color = strtolower($nombre) === 'liquidado' ? '#28a745' : '#ffc107'; // Verde si está liquidado, amarillo si no
+        
+                    return "<div class='editable-pago' 
+                                data-record-id='{$model['id']}' 
+                                data-field-name='estatus_pago_id'
+                                data-options='{$optionsPagoJson}'
+                                style='cursor:pointer; display:inline-block;'>
+                                <span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>
+                            </div>";
+                },
+            ],
+            [
+                'attribute' => 'estatus_envio_id',
+                'format' => 'raw',
+                'label' => 'Estatus Envío',
+                'value' => function($model) use ($optionsEnvioJson) {
+                    // $model es un array, acceder directamente
+                    $nombre = $model['envio_nombre'] ?? 'Pendiente';
+                    $color = strtolower($nombre) === 'enviado' ? 'green' : 'red';
+                    
+                    return "<div class='editable-envio' 
+                                data-record-id='{$model['id']}' 
+                                data-field-name='estatus_envio_id'
+                                data-options='{$optionsEnvioJson}'
+                                style='cursor:pointer; display:inline-block;'>
+                                <span class='badge' style='background-color:{$color}; color:white;'>{$nombre}</span>
+                            </div>";
+                },
+            ],
         ],
     ]); ?>
 </div>
@@ -214,11 +255,11 @@ $optionsEnvioJson = htmlspecialchars(json_encode($optionsEnvioArray), ENT_QUOTES
 <?php
 // Estilos CSS
 $this->registerCss("
-/* Barra de encabezados de sección - SEPARADA */
+/* Barra de encabezados de sección - PEGADA A LA TABLA */
 .section-headers-bar {
     display: flex;
     margin-bottom: 0;
-    border-radius: 8px 8px 0 0;
+    border-radius: 8px 8px 0 0; /* Solo esquinas superiores redondeadas */
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -253,15 +294,59 @@ $this->registerCss("
     background: linear-gradient(135deg, #fd7e14, #e55a00);
 }
 
-/* Tabla principal */
+/* CONTENEDOR PRINCIPAL SIN ESPACIOS */
+.atencion-clientes-index {
+    display: flex;
+    flex-direction: column;
+}
+
+/* FORZAR CONEXIÓN COMPLETA ENTRE BARRA Y TABLA */
+.atencion-clientes-index .section-headers-bar {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-bottom: none !important;
+    flex-shrink: 0;
+}
+
+/* Eliminar TODOS los márgenes del CustomGridView y sus elementos hijos */
+.atencion-clientes-index .grid-view,
+.atencion-clientes-index .grid-view > div,
+.atencion-clientes-index .grid-view .table-responsive,
+.atencion-clientes-index .grid-view .summary,
+.atencion-clientes-index .grid-view .empty {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-top: none !important;
+    flex-shrink: 0;
+}
+
+/* Tabla principal - COMPLETAMENTE PEGADA */
 .custom-table {
     font-size: 0.9rem;
     border-collapse: collapse;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 8px 8px; /* Solo esquinas inferiores redondeadas */
     overflow: hidden;
-    margin-top: 0;
-    border-top: none;
+    margin: 0 !important; /* Sin márgenes en absoluto */
+    border-top: none !important; /* Sin borde superior */
+    width: 100%;
+}
+
+/* Eliminar márgenes de Bootstrap en tablas */
+.table {
+    margin-bottom: 0 !important;
+}
+
+/* SOLUCIÓN EXTREMA: Superponer elementos si es necesario */
+.atencion-clientes-index .grid-view {
+    margin-top: -2px !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Encabezados de la tabla - sin borde superior */
+.custom-table thead tr:first-child th {
+    border-top: none !important;
 }
 
 .production-col:last-child {
@@ -398,4 +483,105 @@ $this->registerCss("
     transition: all 0.2s ease;
 }
 ");
-?>
+
+
+$this->registerJs(<<<'JS'
+// --- JS Completo para select editable --
+
+    $(document).on('click', '.editable-envio', function(e){
+        e.stopPropagation();
+        var div = $(this);
+        var recordId = div.data('record-id');
+        var fieldName = div.data('field-name');
+        var options = div.data('options');
+        if (typeof options === 'string') options = JSON.parse(options);
+        if (div.find('select').length) return;
+        var select = $('<select class="form-select form-select-sm"></select>');
+        $.each(options, function(index, option){
+            var selected = (div.find('span').text().trim() === option.nombre) ? 'selected' : '';
+            select.append('<option value="'+option.id+'" '+selected+'>'+option.nombre+'</option>');
+        });
+        div.html(select);
+        select.focus();
+        select.on('change', function(){
+            var newValue = $(this).val();
+            var newText = $(this).find('option:selected').text();
+            $.post('index.php?r=logistica/update-envio', {
+                id: recordId,
+                field: fieldName,
+                value: newValue,
+                _csrf: yii.getCsrfToken()
+            }, function(response){
+                if(response.success){
+                    var color = newText.toLowerCase() === 'enviado' ? 'green' : 'red';
+                    div.html('<span class="badge" style="background-color:'+color+'; color:white;">'+newText+'</span>');
+                } else {
+                    console.error(response.errors || response.message);
+                    alert('Error: ' + (response.message || 'No se pudo actualizar'));
+                }
+            }, 'json');
+        });
+    });
+
+JS
+);
+
+$this->registerJs(<<<'JS'
+// --- JS Completo para select editable de PAGO --
+
+    $(document).on('click', '.editable-pago', function(e){
+        e.stopPropagation();
+        var div = $(this);
+        var recordId = div.data('record-id');
+        var fieldName = div.data('field-name');
+        var options = div.data('options');
+        if (typeof options === 'string') options = JSON.parse(options);
+        if (div.find('select').length) return;
+        
+        var select = $('<select class="form-select form-select-sm"></select>');
+        $.each(options, function(index, option){
+            var selected = (div.find('span').text().trim() === option.nombre) ? 'selected' : '';
+            select.append('<option value="'+option.id+'" '+selected+'>'+option.nombre+'</option>');
+        });
+        div.html(select);
+        select.focus();
+        
+        select.on('change', function(){
+            var newValue = $(this).val();
+            var newText = $(this).find('option:selected').text();
+            
+            console.log('Texto seleccionado:', newText); // Para debug
+            
+            $.post('index.php?r=logistica/update-pago', {
+                id: recordId,
+                field: fieldName,
+                value: newValue,
+                _csrf: yii.getCsrfToken()
+            }, function(response){
+                if(response.success){
+                    // Ajusta estas comparaciones según los nombres reales en tu catálogo
+                    var color = '#ffc107'; // Amarillo por defecto
+                    var textLower = newText.toLowerCase();
+                    
+                    if (textLower === 'pagado' || textLower === 'liquidado' || textLower === 'completo') {
+                        color = '#28a745'; // Verde
+                    }
+                    
+                    var newDiv = '<div class="editable-pago" ' +
+                                'data-record-id="'+recordId+'" ' +
+                                'data-field-name="'+fieldName+'" ' +
+                                'data-options=\''+JSON.stringify(options)+'\' ' +
+                                'style="cursor:pointer; display:inline-block;">' +
+                                '<span class="badge" style="background-color:'+color+'; color:white;">'+newText+'</span>' +
+                                '</div>';
+                    div.parent().html(newDiv);
+                } else {
+                    console.error(response.errors || response.message);
+                    alert('Error: ' + (response.message || 'No se pudo actualizar'));
+                }
+            }, 'json');
+        });
+    });
+
+JS
+);
