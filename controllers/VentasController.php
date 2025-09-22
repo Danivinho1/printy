@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Ventas;
+use app\models\VentasSearch;
 use app\models\Metas;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -52,25 +53,39 @@ class VentasController extends Controller
      */
     public function actionIndex()
 {
-    $dataProvider = new ActiveDataProvider([
-        'query' => Ventas::find()
-            ->joinWith('entrega') // asegurarse de que el alias sea correcto
-            ->orderBy([
-                // Primero las ventas con fecha
-                new Expression('CASE WHEN fecha_entrega IS NOT NULL THEN 0 ELSE 1 END ASC'),
-                // Dentro de las que tienen fecha, las más próximas primero
-                'fecha_entrega' => SORT_ASC,
-                // Para las que no tienen fecha: poner Urgente primero
-                new Expression("CASE WHEN catalogos.nombre = 'Urgente' THEN 0 ELSE 1 END ASC"),
-                // Finalmente, por id Ascendente
-                'id' => SORT_ASC,
-            ]),
-        'pagination' => [
-            'pageSize' => 20,
-        ],
+    $searchModel = new VentasSearch();
+    $searchModel->load(Yii::$app->request->queryParams);
+
+    // Query principal con join y orden personalizado
+    $query = Ventas::find()
+        ->joinWith('entrega') // asegúrate de que el alias sea correcto
+        ->orderBy([
+            // Primero las ventas con fecha
+            new \yii\db\Expression('CASE WHEN fecha_entrega IS NOT NULL THEN 0 ELSE 1 END ASC'),
+            // Dentro de las que tienen fecha, las más próximas primero
+            'fecha_entrega' => SORT_ASC,
+            // Para las que no tienen fecha: poner Urgente primero
+            new \yii\db\Expression("CASE WHEN catalogos.nombre = 'Urgente' THEN 0 ELSE 1 END ASC"),
+            // Finalmente, por id Ascendente
+            'id' => SORT_ASC,
+        ]);
+
+    // Aplicar filtros desde VentasSearch
+    if ($searchModel->entrega_id) {
+        $query->andFilterWhere(['entrega_id' => $searchModel->entrega_id]);
+    }
+
+    $filtroEntrega = \Yii::$app->request->get('entrega');
+    if ($filtroEntrega === 'urgente') {
+        $query->andWhere(['catalogos.nombre' => 'Urgente']);
+    }
+
+    $dataProvider = new \yii\data\ActiveDataProvider([
+        'query' => $query,
+        'pagination' => ['pageSize' => 20],
     ]);
 
-    // Modelo para el modal (tu código existente)
+    // Modelo para el modal
     $modeloNuevo = new Ventas();
     if ($modeloNuevo->load(Yii::$app->request->post()) && $modeloNuevo->save()) {
         Yii::$app->session->setFlash('success', 'Venta guardada correctamente.');
@@ -78,10 +93,12 @@ class VentasController extends Controller
     }
 
     return $this->render('index', [
-        'dataProvider' => $dataProvider,  
-        'modeloNuevo' => $modeloNuevo,   
+        'searchModel' => $searchModel, // para los filtros en el GridView
+        'dataProvider' => $dataProvider,
+        'modeloNuevo' => $modeloNuevo,
     ]);
 }
+
     /**
      * Creates a new Ventas model.
      * If creation is successful, the browser will be redirected to the 'view' page.

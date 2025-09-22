@@ -163,7 +163,7 @@ class LogisticaController extends Controller
         return ['success' => false, 'message' => 'Parámetros faltantes'];
     }
 
-    $model = \app\models\Logistica::findOne($id);
+    $model = Logistica::findOne($id);
     if (!$model) {
         return ['success' => false, 'message' => 'Registro no encontrado'];
     }
@@ -211,7 +211,7 @@ class LogisticaController extends Controller
 
         // 🚀 Sincronizar Restante con Ventas si se editó total o anticipo
         if (in_array($field, ['total', 'anticipo'])) {
-            $venta = \app\models\Ventas::findOne($model->venta_id);
+            $venta = Ventas::findOne($model->venta_id);
             if ($venta) {
                 $venta->precio_total = $model->total;
                 $venta->anticipo = $model->anticipo;
@@ -271,46 +271,67 @@ class LogisticaController extends Controller
     ];
 }
 
-    public function actionAtencionClientes()
-    {
-        // Obtener los registros de ventas
-        $ventas = Ventas::find()->all();
+   public function actionAtencionClientes()
+{
+    // Obtener los registros de ventas
+    $ventas = Ventas::find()->all();
 
-        // Construir un array combinando datos de ventas, diseño y producción
-        $data = [];
-        foreach ($ventas as $venta) {
+    // Construir un array combinando datos de ventas, diseño y producción
+    $data = [];
+    foreach ($ventas as $venta) {
+        $diseno = Diseno::find()->where(['venta_id'=>$venta->id])->one();
+        $produccion = Produccion::find()->where(['venta_id'=>$venta->id])->one();
+        $logistica = Logistica::find()->where(['venta_id'=>$venta->id])->one();
 
-            $diseno = Diseno::find()->where(['venta_id'=>$venta->id])->one();
-            $produccion = Produccion::find()->where(['venta_id'=>$venta->id])->one();
-
-            $data[] = [
-                'tipo_letrero' => $venta->tipoLetrero->nombre ?? 'No definido',
-                'nombre_letrero' => $venta->nombre_letrero,
-                'telefono' => $venta->telefono,
-                'contacto_cliente' => $diseno->contacto_cliente_id ?? 0,
-                'vectorizado' => $diseno->vectorizado_id ?? 0,
-                'estatus' => $venta->estatus->nombre ?? 'Pendiente',
-                'fecha_confirmacion' => $diseno->fecha_confirmacion,
-                'diseno_impresion' => $produccion->diseno_impresion ?? 0,
-                'corte_listo' => $produccion->corte_listo ?? 0,
-                'fabricacion_listo' => $produccion->fabricacion_listo ?? 0,
-                'empaquetado_nombre' => $produccion->empaquetado->nombre ?? 'Pendiente',
-                'restante' => $venta['restante'] ?? 0,
-            ];
+        // Obtener el nombre del envío desde el catálogo
+        $envioNombre = 'Pendiente';
+        if ($logistica && $logistica->estatus_envio_id) {
+            $catalogoEnvio = \app\models\Catalogos::findOne($logistica->estatus_envio_id);
+            $envioNombre = $catalogoEnvio ? $catalogoEnvio->nombre : 'Pendiente';
         }
 
-        // Crear un DataProvider para la vista
-        $dataProvider = new ArrayDataProvider([
-            'allModels' => $data,
-            'pagination' => [
-                'pageSize' => 20,
-            ],
-        ]);
+        // Obtener el nombre del estatus de pago desde el catálogo (también de logística)
+        $pagoNombre = 'Pendiente';
+        if ($logistica && $logistica->estatus_pago_id) {
+            $catalogoPago = \app\models\Catalogos::findOne($logistica->estatus_pago_id);
+            $pagoNombre = $catalogoPago ? $catalogoPago->nombre : 'Pendiente';
+        }
 
-        return $this->render('atencion-clientes', [
-            'dataProvider' => $dataProvider,
-        ]);
+        $data[] = [
+            'id' => $venta->id,
+            'tipo_letrero' => $venta->tipoLetrero->nombre ?? 'No definido',
+            'nombre_letrero' => $venta->nombre_letrero,
+            'telefono' => $venta->telefono,
+            'contacto_cliente' => $diseno->contacto_cliente_id ?? 0,
+            'vectorizado' => $diseno->vectorizado_id ?? 0,
+            'estatus' => $venta->estatus->nombre ?? 'Pendiente',
+            'fecha_confirmacion' => $diseno->fecha_confirmacion,
+            'diseno_impresion' => $produccion->diseno_impresion ?? 0,
+            'corte_listo' => $produccion->corte_listo ?? 0,
+            'fabricacion_listo' => $produccion->fabricacion_listo ?? 0,
+            'empaquetado_nombre' => $produccion->empaquetado->nombre ?? 'Pendiente',
+            'restante' => $venta->restante ?? 0,
+            // Datos de envío
+            'estatus_envio_id' => $logistica->estatus_envio_id ?? null,
+            'envio_nombre' => $envioNombre,
+            // Datos de pago (también de logística)
+            'estatus_pago_id' => $logistica->estatus_pago_id ?? null,
+            'pago_nombre' => $pagoNombre,
+        ];
     }
+
+    // Crear un DataProvider para la vista
+    $dataProvider = new ArrayDataProvider([
+        'allModels' => $data,
+        'pagination' => [
+            'pageSize' => 20,
+        ],
+    ]);
+
+    return $this->render('atencion-clientes', [
+        'dataProvider' => $dataProvider,
+    ]);
+}
 
     public function actionToggleField()
 {
@@ -320,7 +341,7 @@ class LogisticaController extends Controller
     $field = Yii::$app->request->post('field');
     $value = Yii::$app->request->post('value');
 
-    $model = \app\models\Logistica::findOne($id);
+    $model = Logistica::findOne($id);
     if($model && $field == 'estatus_envio_id'){
         $model->$field = $value;
         if($model->save(false)){
@@ -336,37 +357,91 @@ public function actionUpdateEnvio()
 {
     Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
+    $ventaId = Yii::$app->request->post('id');
+    $field = Yii::$app->request->post('field');
+    $value = Yii::$app->request->post('value');
+
+    // Buscar logística por venta_id
+    $logistica = Logistica::find()->where(['venta_id' => $ventaId])->one();
+    
+    if (!$logistica) {
+        // Crear nuevo registro de logística si no existe
+        $logistica = new Logistica();
+        $logistica->venta_id = $ventaId;
+    }
+
+    if ($field == 'estatus_envio_id') {
+        $logistica->estatus_envio_id = $value;
+        
+        if ($logistica->save()) {
+            // Obtener el nuevo nombre para la respuesta
+            $catalogoEnvio = \app\models\Catalogos::findOne($value);
+            $nuevoNombre = $catalogoEnvio ? $catalogoEnvio->nombre : 'Desconocido';
+            
+            return [
+                'success' => true,
+                'nombre' => $nuevoNombre
+            ];
+        }
+    }
+
+    return [
+        'success' => false,
+        'message' => 'Error al actualizar',
+        'errors' => $logistica->getErrors()
+    ];
+}
+public function actionUpdatePago()
+{
+    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
     $id = Yii::$app->request->post('id');
     $field = Yii::$app->request->post('field');
     $value = Yii::$app->request->post('value');
 
-    $model = \app\models\Logistica::findOne($id);
+    try {
+        // Buscar el registro de logística por venta_id
+        $logistica = Logistica::find()->where(['venta_id' => $id])->one();
+        
+        if (!$logistica) {
+            // Si no existe, crear uno nuevo
+            $logistica = new Logistica();
+            $logistica->venta_id = $id;
+        }
 
-    if (!$model) {
-        return ['success' => false, 'message' => 'Registro no encontrado'];
-    }
+        if ($field == 'estatus_pago_id') {
+            $logistica->estatus_pago_id = $value;
+            
+            if ($logistica->save()) {
+                // Obtener el nuevo nombre para la respuesta
+                $catalogo = \app\models\Catalogos::findOne($value);
+                $nuevoNombre = $catalogo ? $catalogo->nombre : 'Desconocido';
+                
+                return [
+                    'success' => true,
+                    'nombre' => $nuevoNombre
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Error al guardar',
+                    'errors' => $logistica->getErrors()
+                ];
+            }
+        }
 
-    // Verificar si el campo existe
-    if (!$model->hasAttribute($field)) {
-        return ['success' => false, 'message' => 'Campo inválido: ' . $field];
-    }
-
-    // Asignar nuevo valor
-    $model->$field = $value;
-
-    if ($model->save()) {
-        return ['success' => true];
-    } else {
-        // Aquí vemos exactamente qué está fallando
         return [
             'success' => false,
-            'message' => 'Error al guardar en la base de datos',
-            'errors' => $model->getErrors()
+            'message' => 'Campo no válido: ' . $field
+        ];
+
+    } catch (\Exception $e) {
+        return [
+            'success' => false,
+            'message' => 'Error del servidor: ' . $e->getMessage()
         ];
     }
 }
-
-
 }
 
 
