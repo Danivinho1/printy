@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Diseno;
+use app\models\DisenoSearch;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
@@ -42,9 +43,169 @@ function getColorAvance($avance) {
 <div class="diseno-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
+    <?php
+
+// Obtener filtros actuales de la URL
+$filtroEstatus = Yii::$app->request->get('estatus');
+
+// Obtener conteos usando el DisenoSearch
+$conteos = DisenoSearch::getFiltrosConteos();
+$totalRegistros = $conteos['total'];
+$urgentesCount = $conteos['urgentes'];
+$pendientesCount = $conteos['pendientes'];
+$listosCount = $conteos['listos'];
+
+// Función para mantener otros filtros en las URLs
+function buildFilterUrl($newFilters = []) {
+    $currentParams = Yii::$app->request->queryParams;
+    
+    // Remover parámetros de paginación para reset
+    unset($currentParams['page']);
+    
+    $params = array_merge($currentParams, $newFilters);
+    
+    // Remover parámetros vacíos o null
+    foreach ($params as $key => $value) {
+        if ($value === null || $value === '' || $value === 'todos') {
+            unset($params[$key]);
+        }
+    }
+    
+    return Url::current($params);
+}
+?>
+
+<div class="filtros-diseño mb-4 d-flex justify-content-between align-items-center">
+    <!-- Filtros a la izquierda -->
+    <div class="d-flex align-items-center gap-2">
+        <!-- Botón Todos -->
+        <a href="<?= Url::to(['diseno/index']) ?>" 
+           class="btn-filtro <?= !$filtroEstatus ? 'active' : '' ?>">
+            Todos (<?= $totalRegistros ?>)
+        </a>
+
+        <!-- Filtro Urgentes -->
+        <a href="<?= Url::to(['diseno/index', 'estatus' => 'urgente']) ?>" 
+           class="btn-filtro btn-urgente <?= $filtroEstatus == 'urgente' ? 'active' : '' ?>">
+            Urgentes (<?= $urgentesCount ?>)
+        </a>
+
+        <!-- Filtro Pendientes -->
+        <a href="<?= Url::to(['diseno/index', 'estatus' => 'pendiente']) ?>" 
+           class="btn-filtro btn-pendiente <?= $filtroEstatus == 'pendiente' ? 'active' : '' ?>">
+            Pendientes (<?= $pendientesCount ?>)
+        </a>
+
+        <!-- Filtro Listos -->
+        <a href="<?= Url::to(['diseno/index', 'estatus' => 'listo']) ?>" 
+           class="btn-filtro btn-listo <?= $filtroEstatus == 'listo' ? 'active' : '' ?>">
+            Listos (<?= $listosCount ?>)
+        </a>
+    </div>
+
+    <!-- Botón Exportar a la derecha -->
+    <div>
+        <?= Html::a('<i class="fas fa-file-excel me-2"></i>Exportar a Excel', 
+            ['export-excel'], 
+            [
+                'class' => 'btn btn-light border btn-sm',
+                'title' => 'Descargar todos los datos en Excel',
+                'data-bs-toggle' => 'tooltip',
+                'data-bs-placement' => 'top'
+            ]) 
+        ?>
+    </div>
+</div>
+
+
+<style>
+.filtros-diseño {
+    background-color: #f8f9fa;
+    padding: 8px 12px; /* más compacto */
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.btn-filtro {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 4px 10px; /* reducido */
+    border-radius: 4px; /* más discreto */
+    text-decoration: none;
+    font-size: 12px; /* más pequeño */
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.btn-filtro:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    text-decoration: none;
+}
+
+.btn-filtro.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.btn-urgente.active {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #ffffff;
+}
+
+.btn-urgente.active:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.btn-pendiente.active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000000;
+}
+
+.btn-pendiente.active:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.btn-listo.active {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #ffffff;
+}
+
+.btn-listo.active:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filtros-diseño .d-flex {
+        flex-wrap: wrap;
+    }
+    
+    .btn-filtro {
+        margin-bottom: 5px;
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+}
+</style>
+
 
     <?= CustomGridView::widget([
         'dataProvider' => $dataProvider,
+        'summary' => false,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
@@ -172,22 +333,6 @@ function getColorAvance($avance) {
                 }
             ],
             [
-                'attribute' => 'especificaciones_id',
-                'format' => 'raw',
-                'value' => function($model){
-                    $completed = $model->especificaciones_id == 1;
-                    $color = $completed ? '#2196F3' : '#f44336';
-                    $icon = $completed ? '✓' : '✗';
-                    return Html::tag('div', $icon, [
-                        'class'=>'check-circle',
-                        'data-id'=>$model->id,
-                        'data-field'=>'especificaciones_id',
-                        'title'=>'Especificaciones',
-                        'style'=>"width:25px;height:25px;border-radius:50%;background-color:$color;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;margin:auto;"
-                    ]);
-                }
-            ],
-            [
                 'attribute' => 'vectorizado_id',
                 'format' => 'raw',
                 'value' => function($model){
@@ -199,22 +344,6 @@ function getColorAvance($avance) {
                         'data-id'=>$model->id,
                         'data-field'=>'vectorizado_id',
                         'title'=>'Vectorizado',
-                        'style'=>"width:25px;height:25px;border-radius:50%;background-color:$color;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;margin:auto;"
-                    ]);
-                }
-            ],
-            [
-                'attribute' => 'enviado_corte_id',
-                'format' => 'raw',
-                'value' => function($model){
-                    $completed = $model->enviado_corte_id == 1;
-                    $color = $completed ? '#9C27B0' : '#f44336';
-                    $icon = $completed ? '✓' : '✗';
-                    return Html::tag('div', $icon, [
-                        'class'=>'check-circle',
-                        'data-id'=>$model->id,
-                        'data-field'=>'enviado_corte_id',
-                        'title'=>'Enviado Corte',
                         'style'=>"width:25px;height:25px;border-radius:50%;background-color:$color;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;margin:auto;"
                     ]);
                 }
@@ -270,9 +399,7 @@ function getColorAvance($avance) {
 <?php
 $this->registerJs('
 function getBarColor(avance){
-    if(avance <= 25) return "#f44336";
     if(avance <= 50) return "#ff9800";
-    if(avance <= 75) return "#ffeb3b";
     return "#4CAF50";
 }
 
@@ -303,9 +430,8 @@ $(".check-circle").on("click", function(){
     // Colores de cada check
     var colorMap = {
         "contacto_cliente_id": "#4CAF50",
-        "especificaciones_id": "#2196F3", 
         "vectorizado_id": "#FF9800",
-        "enviado_corte_id": "#9C27B0"
+
     };
     
     var newColor = completed ? colorMap[field] : "#f44336";
@@ -317,7 +443,7 @@ $(".check-circle").on("click", function(){
     $(".check-circle[data-id=\'" + id + "\']").each(function(){
         totalSteps++;
         if($(this).data("completed")) {
-            total += 25;
+            total += 50;
         }
     });
 
