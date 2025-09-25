@@ -156,124 +156,168 @@ $ultimasVentas = (clone $queryBase)
                     </button>
 
                     <!-- Notificaciones (dinámicas) -->
-                            <div class="relative" id="notifs-dropdown">
-                                <button
-                                    class="p-2 text-gray-600 hover:text-gray-800 hover:bg-white/40 rounded-md transition-colors relative inline-flex items-center"
-                                    id="notifs-button" aria-expanded="false" aria-haspopup="true">
-                                    <span class="sr-only">Ver notificaciones</span>
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                        stroke-width="2">
-                                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                                    </svg>
-                                    <?php if ($totalNotifs > 0): ?>
-                                        <span
-                                            class="absolute -top-0.5 -right-0.5 h-4 min-w-[1rem] px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                                            <?= $totalNotifs ?>
-                                        </span>
-                                    <?php endif; ?>
-                                    <svg id="dropdown-arrow-notifs"
-                                        class="w-3 h-3 ml-1.5 transition-transform duration-200" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
 
-                                <div id="dropdown-menu-notifs"
-                                    class="hidden absolute right-0 mt-2 w-96 bg-white shadow-lg border border-gray-200 rounded-md z-50">
-                                    <div class="py-2">
-                                        <div class="px-4 py-2 border-b border-gray-100">
-                                            <div class="text-sm font-semibold text-gray-800">Notificaciones</div>
-                                            <div class="mt-1 text-xs text-gray-500"><?= date('d M Y') ?></div>
-                                        </div>
+                   <?php
+// Bloque de notificaciones (pegar dentro del <header>, en el <div class="flex items-center ...">)
+?>
+<!-- <?= \app\components\NotificacionesWidget::widget() ?> optional: deja si lo usas -->
+<div class="relative" id="notifs-dropdown">
+    <button
+        id="notifs-button"
+        class="p-2 text-gray-600 hover:text-gray-800 hover:bg-white/40 rounded-md transition-colors relative inline-flex items-center"
+        aria-expanded="false" aria-haspopup="true" type="button">
+        <span class="sr-only">Ver notificaciones</span>
 
-                                        <div class="px-4 py-3 grid grid-cols-3 gap-2 text-center">
-                                            <a href="<?= Url::to(['/ventas/index', 'f' => 'pago']) ?>"
-                                                class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50">
-                                                <div class="text-xs text-gray-500">Pago pendiente</div>
-                                                <div class="text-lg font-semibold text-gray-800">
-                                                    <?= (int) $pendientesPago ?></div>
-                                            </a>
-                                            <a href="<?= Url::to(['/ventas/index', 'f' => 'proxima']) ?>"
-                                                class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50">
-                                                <div class="text-xs text-gray-500">Entrega próxima (≤3d)</div>
-                                                <div class="text-lg font-semibold text-gray-800">
-                                                    <?= (int) $proximasEntregas ?></div>
-                                            </a>
-                                            <a href="<?= Url::to(['/ventas/index', 'f' => 'atrasada']) ?>"
-                                                class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50">
-                                                <div class="text-xs text-gray-500">Entrega atrasada</div>
-                                                <div class="text-lg font-semibold text-gray-800"><?= (int) $atrasadas ?>
-                                                </div>
-                                            </a>
-                                        </div>
+        <!-- ICONO DE CAMPANA (tu SVG) -->
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+        </svg>
 
-                                        <?php if (!empty($ultimasVentas)): ?>
-                                            <div
-                                                class="px-4 py-2 text-xs uppercase tracking-wide text-gray-500 border-t border-gray-100">
-                                                Últimas actualizaciones
-                                            </div>
-                                            <div class="max-h-80 overflow-auto">
-                                                <?php foreach ($ultimasVentas as $v): ?>
-                                                    <?php
-                                                    $chips = [];
-                                                    if ((float) $v->restante > 0) {
-                                                        $chips[] = ['text' => 'Pago pendiente', 'color' => 'bg-yellow-100 text-yellow-700'];
-                                                    }
-                                                    if (!empty($v->fecha_entrega)) {
-                                                        $fe = substr($v->fecha_entrega, 0, 10);
-                                                        if ($fe === $hoy) {
-                                                            $chips[] = ['text' => 'Entrega hoy', 'color' => 'bg-blue-100 text-blue-700'];
-                                                        } elseif ($fe < $hoy) {
-                                                            $chips[] = ['text' => 'Atrasada', 'color' => 'bg-red-100 text-red-700'];
-                                                        } elseif ($fe <= $en3dias) {
-                                                            $chips[] = ['text' => 'Próxima', 'color' => 'bg-green-100 text-green-700'];
-                                                        }
-                                                    }
-                                                    ?>
-                                                    <!-- dentro del foreach ($ultimasVentas as $v): reemplaza el href -->
-                                                    <a href="<?= \yii\helpers\Url::to(['/ventas/update', 'id' => $v->id]) ?>"
-                                                        class="no-underline block px-4 py-3 hover:bg-gray-50 border-b border-gray-50">
-                                                        <div class="flex items-start justify-between">
-                                                            <div class="mr-3">
-                                                                <div class="text-sm font-medium text-gray-800">
-                                                                    #<?= (int) $v->id ?> ·
-                                                                    <?= \yii\bootstrap5\Html::encode($v->nombre_letrero) ?>
-                                                                </div>
-                                                                <div class="text-xs text-gray-500">
-                                                                    Entrega:
-                                                                    <?= $v->fecha_entrega ? \yii\bootstrap5\Html::encode(substr($v->fecha_entrega, 0, 10)) : '—' ?>
-                                                                </div>
-                                                            </div>
-                                                            <?php if (!empty($chips)): ?>
-                                                                <div class="flex flex-wrap gap-1">
-                                                                    <?php foreach ($chips as $c): ?>
-                                                                        <span
-                                                                            class="inline-flex items-center px-2 py-0.5 rounded text-[10px] <?= $c['color'] ?>">
-                                                                            <?= \yii\bootstrap5\Html::encode($c['text']) ?>
-                                                                        </span>
-                                                                    <?php endforeach; ?>
-                                                                </div>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </a>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="px-4 py-6 text-center text-sm text-gray-500">
-                                                No hay notificaciones por ahora.
-                                            </div>
-                                        <?php endif; ?>
+        <?php if (!empty($totalNotifs) && $totalNotifs > 0): ?>
+            <span
+                class="absolute -top-0.5 -right-0.5 h-4 min-w-[1rem] px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
+                aria-hidden="true">
+                <?= (int)$totalNotifs ?>
+            </span>
+        <?php endif; ?>
 
-                                        <div class="px-4 py-2">
-                                            <a href="<?= Url::to(['/ventas/index']) ?>"
-                                                class="w-full inline-flex justify-center items-center text-sm text-blue-600 hover:text-blue-700 no-underline">
-                                                Ver todo en Ventas
-                                            </a>
-                                        </div>
-                                    </div>
+        <!-- FLECHA -->
+        <svg id="dropdown-arrow-notifs"
+             class="dropdown-arrow w-3 h-3 ml-1.5 transition-transform duration-200"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+    </button>
+
+    <div id="dropdown-menu-notifs" class="dropdown-menu hidden absolute right-0 mt-2 w-96 bg-white shadow-lg border border-gray-200 rounded-md z-50" role="menu" aria-labelledby="notifs-button">
+        <div class="py-2">
+            <div class="px-4 py-2 border-b border-gray-100">
+                <div class="text-sm font-semibold text-gray-800">Notificaciones</div>
+                <div class="mt-1 text-xs text-gray-500"><?= date('d M Y') ?></div>
+            </div>
+
+            <div class="px-4 py-3 grid grid-cols-3 gap-2 text-center">
+                <a href="<?= Url::to(['/ventas/index', 'f' => 'pago']) ?>"
+                   class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50" role="menuitem">
+                    <div class="text-xs text-gray-500">Pago pendiente</div>
+                    <div class="text-lg font-semibold text-gray-800"><?= (int)$pendientesPago ?></div>
+                </a>
+                <a href="<?= Url::to(['/ventas/index', 'f' => 'proxima']) ?>"
+                   class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50" role="menuitem">
+                    <div class="text-xs text-gray-500">Entrega próxima (≤3d)</div>
+                    <div class="text-lg font-semibold text-gray-800"><?= (int)$proximasEntregas ?></div>
+                </a>
+                <a href="<?= Url::to(['/ventas/index', 'f' => 'atrasada']) ?>"
+                   class="no-underline block rounded-md border border-gray-200 p-2 hover:bg-gray-50" role="menuitem">
+                    <div class="text-xs text-gray-500">Entrega atrasada</div>
+                    <div class="text-lg font-semibold text-gray-800"><?= (int)$atrasadas ?></div>
+                </a>
+            </div>
+
+            <?php if (!empty($ultimasVentas)): ?>
+                <div class="px-4 py-2 text-xs uppercase tracking-wide text-gray-500 border-t border-gray-100">Últimas actualizaciones</div>
+                <div class="max-h-80 overflow-auto">
+                    <?php foreach ($ultimasVentas as $v): ?>
+                        <?php
+                        $chips = [];
+                        if ((float)$v->restante > 0) $chips[] = ['text'=>'Pago pendiente','color'=>'bg-yellow-100 text-yellow-700'];
+                        if (!empty($v->fecha_entrega)) {
+                            $fe = substr($v->fecha_entrega,0,10);
+                            if ($fe === $hoy) $chips[] = ['text'=>'Entrega hoy','color'=>'bg-blue-100 text-blue-700'];
+                            elseif ($fe < $hoy) $chips[] = ['text'=>'Atrasada','color'=>'bg-red-100 text-red-700'];
+                            elseif ($fe <= $en3dias) $chips[] = ['text'=>'Próxima','color'=>'bg-green-100 text-green-700'];
+                        }
+                        ?>
+                        <a href="<?= \yii\helpers\Url::to(['/ventas/update','id'=>$v->id]) ?>"
+                           class="no-underline block px-4 py-3 hover:bg-gray-50 border-b border-gray-50" role="menuitem">
+                            <div class="flex items-start justify-between">
+                                <div class="mr-3">
+                                    <div class="text-sm font-medium text-gray-800">#<?= (int)$v->id ?> · <?= \yii\bootstrap5\Html::encode($v->nombre_letrero) ?></div>
+                                    <div class="text-xs text-gray-500">Entrega: <?= $v->fecha_entrega ? \yii\bootstrap5\Html::encode(substr($v->fecha_entrega,0,10)) : '—' ?></div>
                                 </div>
+                                <?php if (!empty($chips)): ?>
+                                    <div class="flex flex-wrap gap-1">
+                                        <?php foreach ($chips as $c): ?>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] <?= $c['color'] ?>"><?= \yii\bootstrap5\Html::encode($c['text']) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="px-4 py-6 text-center text-sm text-gray-500">No hay notificaciones por ahora.</div>
+            <?php endif; ?>
+
+            <div class="px-4 py-2">
+                <a href="<?= Url::to(['/ventas/index']) ?>" class="w-full inline-flex justify-center items-center text-sm text-blue-600 hover:text-blue-700 no-underline">Ver todo en Ventas</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- SCRIPT: pegar justo antes de </body> o al final del layout -->
+<script>
+(function () {
+    // Helper: safe get element
+    function $id(id) { return document.getElementById(id); }
+
+    var btn = $id('notifs-button');
+    var menu = $id('dropdown-menu-notifs');
+    var arrow = $id('dropdown-arrow-notifs');
+
+    if (!btn || !menu || !arrow) {
+        // Si algo falta, no hacer nada (evita errores que rompan el resto)
+        return;
+    }
+
+    // Inicial: asegurar atributos y clases
+    menu.classList.add('dropdown-menu');
+    arrow.classList.add('dropdown-arrow');
+    btn.setAttribute('aria-expanded', 'false');
+
+    function openMenu() {
+        menu.classList.remove('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        arrow.classList.add('arrow-rotated');
+    }
+    function closeMenu() {
+        menu.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        arrow.classList.remove('arrow-rotated');
+    }
+    function toggleMenu(e) {
+        e.stopPropagation();
+        if (menu.classList.contains('hidden')) openMenu(); else closeMenu();
+    }
+
+    btn.addEventListener('click', toggleMenu);
+
+    // Cerrar al clicar fuera
+    document.addEventListener('click', function (e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeMenu();
+    });
+
+    // Opcional: cerrar al cambiar de ruta (pjax/turbolinks) si usas
+    // window.addEventListener('popstate', closeMenu);
+})();
+</script>
+
+<style>
+/* Solo la clase de rotación, ponlo en tu CSS global si prefieres */
+.arrow-rotated { transform: rotate(180deg); }
+</style>
 
                     <!-- Avatar del usuario con dropdown de perfil -->
                     <div class="relative" id="profile-dropdown">
@@ -731,10 +775,105 @@ document.addEventListener("DOMContentLoaded", function () {
     // Nuevo: Perfil
     setupDropdown("profile-button", "dropdown-menu-profile", "dropdown-arrow-profile");
 });
+
+// Fix ligero para que el dropdown de notificaciones se muestre aunque haya reglas CSS que lo oculten.
+// Pegar justo antes de </body> (después de otros scripts).
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    const btn = document.getElementById('notifs-button');
+    const menu = document.getElementById('dropdown-menu-notifs');
+    const arrow = document.getElementById('dropdown-arrow-notifs');
+
+    if (!btn || !menu) {
+      console.warn('NOTIFS-FIX: no se encontró btn o menu (ids esperados: notifs-button, dropdown-menu-notifs)');
+      return;
+    }
+
+    // Helpers
+    function isComputedHidden(el) {
+      const cs = window.getComputedStyle(el);
+      return cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0';
+    }
+
+    function forceShow(el) {
+      // Primero intenta la forma "limpia"
+      el.classList.remove('hidden');
+      // Si sigue oculto por CSS, aplicar inline con mayor prioridad
+      if (isComputedHidden(el)) {
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.setProperty('transform', 'translateY(0)', 'important');
+        el.style.setProperty('z-index', '9999', 'important');
+      }
+    }
+
+    function cleanInline(el) {
+      el.classList.add('hidden');
+      // Remover solo las propiedades que pusimos
+      el.style.removeProperty('display');
+      el.style.removeProperty('visibility');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('z-index');
+    }
+
+    function openMenu() {
+      forceShow(menu);
+      if (arrow) arrow.classList.add('arrow-rotated');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      cleanInline(menu);
+      if (arrow) arrow.classList.remove('arrow-rotated');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    // Toggle robusto
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const currentlyHidden = isComputedHidden(menu);
+      // cerrar otros (por si tienes script que no cierre)
+      document.querySelectorAll('[id^="dropdown-menu-"]').forEach(m => {
+        if (m !== menu) {
+          m.classList.add('hidden');
+          m.style.removeProperty('display');
+          m.style.removeProperty('visibility');
+          m.style.removeProperty('opacity');
+          m.style.removeProperty('transform');
+        }
+      });
+      if (currentlyHidden) openMenu(); else closeMenu();
+    });
+
+    // Cerrar al click fuera
+    document.addEventListener('click', function (e) {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) closeMenu();
+    });
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' || e.key === 'Esc') closeMenu();
+    });
+
+    // DEBUG rápido opcional (descomenta para ver en consola)
+    // console.log('NOTIFS-FIX in place:', !!btn, !!menu, !!arrow, 'initial hidden?', isComputedHidden(menu));
+  } catch (err) {
+    // No debe romper nada si hay un error
+    console.error('NOTIFS-FIX error:', err);
+  }
+});
 </script>
 
 
+
 <?php $this->endBody() ?>
+
+
+
 </body>
 </html>
+
+
+
 <?php $this->endPage() ?>

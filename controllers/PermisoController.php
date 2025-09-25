@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Permisos;
+use app\models\Permiso;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -39,7 +39,7 @@ class PermisoController extends Controller
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Permisos::find(),
+            'query' => Permiso::find(),
             /*
             'pagination' => [
                 'pageSize' => 50
@@ -77,7 +77,7 @@ class PermisoController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Permisos();
+        $model = new Permiso();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -130,12 +130,12 @@ class PermisoController extends Controller
      * Finds the Permisos model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Permisos the loaded model
+     * @return Permiso the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Permisos::findOne(['id' => $id])) !== null) {
+        if (($model = Permiso::findOne(['id' => $id])) !== null) {
             return $model;
         }
 
