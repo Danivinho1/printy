@@ -107,36 +107,81 @@ class Usuario extends ActiveRecord implements IdentityInterface
     }
 
     // ----------------- Autorización -----------------
+    /**
+     * Comprueba si el usuario tiene permiso para $modulo::$accion
+     * - Normaliza inputs (lowercase + trim)
+     * - Devuelve true si el role tiene es_admin = 1
+     * - Cachea permisos por role_id con key "role_perms_{roleId}" (TTL 3600s)
+     * - Soporta permiso global admin::all si existe
+     *
+     * @param string $modulo
+     * @param string $accion
+     * @return bool
+     */
     public function can($modulo, $accion = 'index'): bool
     {
-        // Admin por rol
+        // Normalizar inputs
+        $modulo = mb_strtolower(trim((string)$modulo));
+        $accion = mb_strtolower(trim((string)$accion));
+
+        // role_id valido?
+        $roleId = (int)$this->role_id;
+        if ($roleId <= 0) {
+            Yii::info("can(): user {$this->id} sin role_id válido", __METHOD__);
+            return false;
+        }
+
+        // Fast-path: rol administrador
         if ($this->role && (int)$this->role->es_admin === 1) {
+            Yii::info("can(): user {$this->id} es_admin => ALLOW", __METHOD__);
             return true;
         }
 
-        // Permiso “admin/all”
-        $hasAll = (new \yii\db\Query())
-            ->from('roles_permisos rp')
-            ->innerJoin('permisos p', 'p.id = rp.permiso_id')
-            ->where([
-                'rp.role_id' => $this->role_id,
-                'p.modulo' => 'admin',
-                'p.accion' => 'all',
-            ])->exists();
-        if ($hasAll) {
+        $cacheKey = "role_perms_{$roleId}";
+        $perms = null;
+        try {
+            $perms = Yii::$app->cache->get($cacheKey);
+        } catch (\Throwable $e) {
+            // Si la cache falla no queremos bloquear la comprobación: seguiremos consultando BD
+            Yii::warning("can(): fallo al leer cache {$cacheKey}: " . $e->getMessage(), __METHOD__);
+            $perms = false;
+        }
+
+        if ($perms === false) {
+            // Cargar permisos desde BD
+            $rows = (new \yii\db\Query())
+                ->select(['p.modulo', 'p.accion'])
+                ->from('permisos p')
+                ->innerJoin('roles_permisos rp', 'rp.permiso_id = p.id')
+                ->where(['rp.role_id' => $roleId, 'p.activo' => 1])
+                ->all();
+
+            $perms = [];
+            foreach ($rows as $r) {
+                $k = mb_strtolower(trim($r['modulo'])) . '::' . mb_strtolower(trim($r['accion']));
+                $perms[$k] = true;
+            }
+
+            try {
+                Yii::$app->cache->set($cacheKey, $perms, 3600);
+            } catch (\Throwable $e) {
+                Yii::warning("can(): fallo al escribir cache {$cacheKey}: " . $e->getMessage(), __METHOD__);
+            }
+
+            Yii::info("can(): cache cargado para role {$roleId} con " . count($perms) . " permisos", __METHOD__);
+        }
+
+        // Soporte para permiso global admin::all
+        if (!empty($perms['admin::all'])) {
+            Yii::info("can(): user {$this->id} tiene admin::all => ALLOW", __METHOD__);
             return true;
         }
 
-        // Permiso específico
-        $hasSpecific = (new \yii\db\Query())
-            ->from('roles_permisos rp')
-            ->innerJoin('permisos p', 'p.id = rp.permiso_id')
-            ->where([
-                'rp.role_id' => $this->role_id,
-                'p.modulo' => $modulo,
-                'p.accion' => $accion,
-            ])->exists();
+        $key = $modulo . '::' . $accion;
+        $result = !empty($perms[$key]);
 
-        return $hasSpecific;
+        Yii::info("can(): user {$this->id} check {$key} => " . ($result ? 'ALLOW' : 'DENY'), __METHOD__);
+
+        return $result;
     }
 }

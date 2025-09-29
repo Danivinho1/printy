@@ -1,17 +1,12 @@
 <?php
 namespace app\models;
 
+use Yii;
 use yii\db\ActiveRecord;
+use yii\helpers\ArrayHelper;
 
 /**
- * @property int $id
- * @property string $nombre
- * @property string|null $descripcion
- * @property int $es_admin
- * @property int $activo
- *
- * @property RolePermiso[] $rolesPermisos
- * @property Permiso[] $permisos
+ * Role ActiveRecord
  */
 class Role extends ActiveRecord
 {
@@ -24,11 +19,9 @@ class Role extends ActiveRecord
     {
         return [
             [['nombre'], 'required'],
-            [['descripcion'], 'string', 'max' => 150],
+            [['descripcion'], 'string'],
+            [['es_admin', 'activo'], 'integer'],
             [['nombre'], 'string', 'max' => 50],
-            [['es_admin', 'activo'], 'boolean'],
-            [['nombre'], 'unique'],
-            [['es_admin', 'activo'], 'default', 'value' => 1, 'when' => fn() => false],
         ];
     }
 
@@ -38,18 +31,57 @@ class Role extends ActiveRecord
             'id' => 'ID',
             'nombre' => 'Nombre',
             'descripcion' => 'Descripción',
-            'es_admin' => 'Es Admin',
+            'es_admin' => 'Es admin',
             'activo' => 'Activo',
+            'created_at' => 'Creado',
+            'updated_at' => 'Actualizado',
         ];
-    }
-
-    public function getRolesPermisos()
-    {
-        return $this->hasMany(RolePermiso::class, ['role_id' => 'id']);
     }
 
     public function getPermisos()
     {
-        return $this->hasMany(Permiso::class, ['id' => 'permiso_id'])->via('rolesPermisos');
+        return $this->hasMany(Permiso::class, ['id' => 'permiso_id'])
+            ->viaTable('roles_permisos', ['role_id' => 'id']);
+    }
+
+    public function getPermisosList(): array
+    {
+        return ArrayHelper::map($this->permisos, 'id', 'nombre');
+    }
+
+    public function assignPermisos(?array $permisoIds): bool
+    {
+        $permisoIds = $permisoIds === null ? [] : array_values(array_filter($permisoIds, 'strlen'));
+        $db = static::getDb();
+        $tx = $db->beginTransaction();
+        try {
+            $db->createCommand()->delete('roles_permisos', ['role_id' => $this->id])->execute();
+            if (!empty($permisoIds)) {
+                $rows = [];
+                $now = date('Y-m-d H:i:s');
+                foreach ($permisoIds as $pid) {
+                    $rows[] = [$this->id, (int)$pid, $now];
+                }
+                $db->createCommand()->batchInsert('roles_permisos', ['role_id', 'permiso_id', 'created_at'], $rows)->execute();
+            }
+            $tx->commit();
+            $this->clearPermsCache();
+            return true;
+        } catch (\Throwable $e) {
+            $tx->rollBack();
+            Yii::error("Error assignPermisos for role {$this->id}: " . $e->getMessage(), __METHOD__);
+            throw $e;
+        }
+    }
+
+    public function clearPermsCache(): void
+    {
+        if ($this->id) {
+            try {
+                Yii::$app->cache->delete("role_perms_{$this->id}");
+            } catch (\Throwable $e) {
+                Yii::warning("No se pudo borrar cache role_perms_{$this->id}: " . $e->getMessage(), __METHOD__);
+            }
+        }
     }
 }
