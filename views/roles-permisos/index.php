@@ -1,5 +1,6 @@
 <?php
 
+use app\models\RolePermiso;
 use app\models\RolesPermisos;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -32,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'created_at',
             [
                 'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, RolesPermisos $model, $key, $index, $column) {
+                'urlCreator' => function ($action, RolePermiso $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
                  }
             ],

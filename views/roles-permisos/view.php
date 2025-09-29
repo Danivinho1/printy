@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /** @var yii\web\View $this */
-/** @var app\models\RolesPermisos $model */
+/** @var app\models\RolePermiso $model */
 
 $this->title = $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Roles Permisos', 'url' => ['index']];

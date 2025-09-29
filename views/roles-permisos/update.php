@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 
 /** @var yii\web\View $this */
-/** @var app\models\RolesPermisos $model */
+/** @var app\models\RolePermiso $model */
 
 $this->title = 'Update Roles Permisos: ' . $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Roles Permisos', 'url' => ['index']];

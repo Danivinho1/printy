@@ -2,6 +2,8 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\helpers\ArrayHelper;
+use app\models\Permiso;
 
 /** @var yii\web\View $this */
 /** @var app\models\Role $model */
@@ -20,12 +22,21 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'activo')->textInput() ?>
 
-    <?= $form->field($model, 'created_at')->textInput() ?>
+    <!-- Permisos asignados al rol -->
+    <?= $form->field($model, 'permisos')->checkboxList(
+        ArrayHelper::map(Permiso::find()->all(), 'id', 'nombre'),
+        [
+            'separator' => '<br>',
+            'itemOptions' => ['class' => 'mx-1 my-1'],
+        ]
+    )->label('Permisos asignados') ?>
 
-    <?= $form->field($model, 'updated_at')->textInput() ?>
+    <!-- Puedes ocultar estos campos si se llenan automáticamente -->
+    <?php //= $form->field($model, 'created_at')->textInput() ?>
+    <?php //= $form->field($model, 'updated_at')->textInput() ?>
 
-    <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+    <div class="form-group mt-3">
+        <?= Html::submitButton('Guardar', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

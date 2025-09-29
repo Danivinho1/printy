@@ -10,6 +10,8 @@ use yii\helpers\ArrayHelper;
  */
 class Role extends ActiveRecord
 {
+    public $permisos = []; // Permisos seleccionados en el form (virtual)
+
     public static function tableName()
     {
         return 'roles';
@@ -22,6 +24,7 @@ class Role extends ActiveRecord
             [['descripcion'], 'string'],
             [['es_admin', 'activo'], 'integer'],
             [['nombre'], 'string', 'max' => 50],
+            [['permisos'], 'safe'], // ¡Agregar esto!
         ];
     }
 
@@ -35,9 +38,11 @@ class Role extends ActiveRecord
             'activo' => 'Activo',
             'created_at' => 'Creado',
             'updated_at' => 'Actualizado',
+            'permisos' => 'Permisos', // Opcional, para el form
         ];
     }
 
+    // Relación para traer permisos asignados
     public function getPermisos()
     {
         return $this->hasMany(Permiso::class, ['id' => 'permiso_id'])
@@ -47,6 +52,20 @@ class Role extends ActiveRecord
     public function getPermisosList(): array
     {
         return ArrayHelper::map($this->permisos, 'id', 'nombre');
+    }
+
+    // Cargar permisos actuales al abrir el form
+    public function afterFind()
+    {
+        parent::afterFind();
+        $this->permisos = ArrayHelper::getColumn($this->getPermisos()->asArray()->all(), 'id');
+    }
+
+    // Guardar permisos al guardar el rol (desde el form)
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->assignPermisos($this->permisos); // Usa tu método batch robusto
     }
 
     public function assignPermisos(?array $permisoIds): bool

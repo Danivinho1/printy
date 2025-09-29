@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\RolePermiso;
 use app\models\RolesPermisos;
 use yii\data\ActiveDataProvider;
 use yii\web\Controller;
@@ -39,7 +40,7 @@ class RolesPermisosController extends Controller
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => RolesPermisos::find(),
+            'query' => RolePermiso::find(),
             /*
             'pagination' => [
                 'pageSize' => 50
@@ -77,7 +78,7 @@ class RolesPermisosController extends Controller
      */
     public function actionCreate()
     {
-        $model = new RolesPermisos();
+        $model = new RolePermiso();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -130,12 +131,12 @@ class RolesPermisosController extends Controller
      * Finds the RolesPermisos model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return RolesPermisos the loaded model
+     * @return RolePermiso the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = RolesPermisos::findOne(['id' => $id])) !== null) {
+        if (($model = RolePermiso::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

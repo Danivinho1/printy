@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 
 /** @var yii\web\View $this */
-/** @var app\models\RolesPermisos $model */
+/** @var app\models\RolePermiso $model */
 
 $this->title = 'Create Roles Permisos';
 $this->params['breadcrumbs'][] = ['label' => 'Roles Permisos', 'url' => ['index']];
