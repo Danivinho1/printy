@@ -375,11 +375,17 @@ function buildFilterUrl($newFilters = []) {
                'format' => 'raw',
                'value' => function($model) {
                    $nombre = $model->estatus->nombre ?? 'Pendiente';
-                   $colores = match ($nombre) {
-                       'Pendiente' => ['bg' => '#dc3545', 'text' => '#fff'],
-                       'Listo'     => ['bg' => '#28a745', 'text' => '#fff'],
-                       default     => generarColorUnico($nombre),
-                  };
+                   switch ($nombre) {
+                       case 'Pendiente':
+                           $colores = ['bg' => '#dc3545', 'text' => '#fff'];
+                           break;
+                       case 'Listo':
+                           $colores = ['bg' => '#28a745', 'text' => '#fff'];
+                           break;
+                       default:
+                           $colores = generarColorUnico($nombre);
+                           break;
+                   }
                   $badge = Html::tag('span', $nombre, [
                       'class' => 'badge',
                       'style' => "background-color:{$colores['bg']};color:{$colores['text']}"

@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+
 use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
@@ -66,7 +67,8 @@ class SiteController extends Controller
     {
         // Si el usuario no está logueado, lo redirige al login
         if (Yii::$app->user->isGuest) {
-            return $this->redirect(['site/login']);
+            Yii::$app->response->redirect(['site/login'])->send();
+            return '';
         }
         
         $mesActual = date('Y-m');

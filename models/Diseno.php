@@ -52,6 +52,11 @@ class Diseno extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
+
+
+
+
+
     public function rules()
     {
         return [
@@ -191,6 +196,13 @@ class Diseno extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Ventas::class, ['id' => 'venta_id']);
     }
+
+
+    public function getDiseno()
+{
+    return $this->hasOne(Diseno::class, ['venta_id' => 'id']);
+}
+
 
     public function getTipoLetrero()
     {

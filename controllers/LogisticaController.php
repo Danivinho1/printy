@@ -24,6 +24,7 @@ use Yii;
  * LogisticaController implements the CRUD actions for Logistica model.
  */
 class LogisticaController extends Controller
+
 {
     /**
      * @inheritDoc
@@ -278,7 +279,7 @@ class LogisticaController extends Controller
     ];
 }
 
-   public function actionAtencionClientes()
+public function actionAtencionClientes()
 {
     // Obtener los registros de ventas
     $ventas = Ventas::find()->all();
@@ -286,9 +287,9 @@ class LogisticaController extends Controller
     // Construir un array combinando datos de ventas, diseño y producción
     $data = [];
     foreach ($ventas as $venta) {
-        $diseno = Diseno::find()->where(['venta_id'=>$venta->id])->one();
-        $produccion = Produccion::find()->where(['venta_id'=>$venta->id])->one();
-        $logistica = Logistica::find()->where(['venta_id'=>$venta->id])->one();
+        $diseno = Diseno::find()->where(['venta_id' => $venta->id])->one();
+        $produccion = Produccion::find()->where(['venta_id' => $venta->id])->one();
+        $logistica = Logistica::find()->where(['venta_id' => $venta->id])->one();
 
         // Obtener el nombre del envío desde el catálogo
         $envioNombre = 'Pendiente';
@@ -323,7 +324,8 @@ class LogisticaController extends Controller
             'contacto_cliente' => $diseno->contacto_cliente_id ?? 0,
             'vectorizado' => $diseno->vectorizado_id ?? 0,
             'estatus' => $venta->estatus->nombre ?? 'Pendiente',
-            'fecha_confirmacion' => $diseno->fecha_confirmacion,
+            // ✅ Corregido para evitar error si $diseno es null
+            'fecha_confirmacion' => $diseno->fecha_confirmacion ?? null,
             'diseno_impresion' => $produccion->diseno_impresion ?? 0,
             'corte_listo' => $produccion->corte_listo ?? 0,
             'fabricacion_listo' => $produccion->fabricacion_listo ?? 0,
@@ -354,6 +356,7 @@ class LogisticaController extends Controller
         'dataProvider' => $dataProvider,
     ]);
 }
+
 
     public function actionToggleField()
 {

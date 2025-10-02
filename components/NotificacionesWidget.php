@@ -15,34 +15,39 @@ class NotificacionesWidget extends Widget
      * Ejecuta el widget.
      * Retorna render('notificaciones', ...) — la vista debe estar en components/views/notificaciones.php
      */
-    public function run()
-    {
-        $usuarioId = Yii::$app->user->id ?? null;
-        $notificaciones = [];
-        $conteoNuevas = 0;
+   public function run()
+{
+    $usuarioId = Yii::$app->user->id ?? null;
+    $notificaciones = [];
+    $conteoNuevas = 0;
 
-        if ($usuarioId) {
-            try {
-                $notificaciones = Notificacion::find()
-                    ->where(['usuario_id' => $usuarioId])
-                    ->orderBy(['id'=>SORT_DESC])
-                    ->limit(10)
-                    ->all();
-
-                $conteoNuevas = (int) Notificacion::find()
-                    ->where(['usuario_id' => $usuarioId, 'leido' => false])
-                    ->count();
-            } catch (\Throwable $e) {
-                Yii::error("NotificacionesWidget error: " . $e->getMessage());
-                // En caso de error devolvemos array vacío y 0 para no romper la vista
-                $notificaciones = [];
-                $conteoNuevas = 0;
-            }
-        }
-
-        return $this->render('notificaciones', [
-            'notificaciones' => $notificaciones,
-            'conteoNuevas' => $conteoNuevas,
-        ]);
+    // 🔒 Verificar permisos antes de consultar
+    $user = Yii::$app->user->identity;
+    if (!$user || !$user->can('notificacion', 'index')) {
+        return ''; // No renderiza nada si no tiene permisos
     }
+
+    if ($usuarioId) {
+        try {
+            $notificaciones = Notificacion::find()
+                ->where(['usuario_id' => $usuarioId])
+                ->orderBy(['id' => SORT_DESC])
+                ->limit(10)
+                ->all();
+
+            $conteoNuevas = (int) Notificacion::find()
+                ->where(['usuario_id' => $usuarioId, 'leido' => false])
+                ->count();
+        } catch (\Throwable $e) {
+            Yii::error("NotificacionesWidget error: " . $e->getMessage());
+            $notificaciones = [];
+            $conteoNuevas = 0;
+        }
+    }
+
+    return $this->render('notificaciones', [
+        'notificaciones' => $notificaciones,
+        'conteoNuevas'   => $conteoNuevas,
+    ]);
+}
 }

@@ -125,11 +125,17 @@ class DisenoController extends Controller
     if ($model->save()) {
         if ($field === 'estatus_id') {
             $nombre = $model->estatus->nombre ?? 'Pendiente';
-            $colores = match($nombre) {
-                'Pendiente' => ['bg'=>'#dc3545','text'=>'#fff'],
-                'Listo' => ['bg'=>'#28a745','text'=>'#fff'],
-                default => $this->generarColorUnico($nombre)
-            };
+            switch ($nombre) {
+                case 'Pendiente':
+                    $colores = ['bg'=>'#dc3545','text'=>'#fff'];
+                    break;
+                case 'Listo':
+                    $colores = ['bg'=>'#28a745','text'=>'#fff'];
+                    break;
+                default:
+                    $colores = $this->generarColorUnico($nombre);
+                    break;
+            }
             $badge = '<span class=\"badge\" style=\"background-color:'.$colores['bg'].'; color:'.$colores['text'].';\">'.$nombre.'</span>';
             return ['success'=>true,'newContent'=>$badge];
         }
@@ -537,11 +543,17 @@ private function generateManyToManyContent($disenoId, $field)
 
         // Estatus
         $estatus = $diseño->estatus->nombre ?? 'Pendiente';
-        $colores = match($estatus){
-            'Pendiente'=>['bg'=>'dc3545','text'=>'ffffff'],
-            'Listo'=>['bg'=>'28a745','text'=>'ffffff'],
-            default => $getBadgeColor($estatus)
-        };
+        switch ($estatus) {
+            case 'Pendiente':
+                $colores = ['bg'=>'dc3545','text'=>'ffffff'];
+                break;
+            case 'Listo':
+                $colores = ['bg'=>'28a745','text'=>'ffffff'];
+                break;
+            default:
+                $colores = $getBadgeColor($estatus);
+                break;
+        }
         $sheet->setCellValue('N'.$row, $estatus);
         $sheet->getStyle('N'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($colores['bg']);
         $sheet->getStyle('N'.$row)->getFont()->getColor()->setRGB($colores['text']);

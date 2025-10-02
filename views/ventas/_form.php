@@ -161,11 +161,12 @@ $catalogos = ['tipo_letrero', 'entrega', 'adicionales', 'extras', 'medio', 'camp
     </div>
 
     <div class="form-group">
-        <?= $form->field($model, 'restante')->input('number', [
+        <?= $form->field($model, 'restante')->textInput([
             'step' => '0.01',
             'id' => 'restante',
             'readonly' => true,
-            'class' => 'form-control bg-light'
+            'class' => 'form-control bg-light',
+            'style' => 'background:#f5f5f5;font-weight:bold;'
         ])->label('💰 Restante') ?>
     </div>
 </div>

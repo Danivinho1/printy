@@ -1,5 +1,6 @@
 <?php
 
+
 namespace app\controllers;
 
 use Yii;
@@ -26,86 +27,76 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
  * VentasController implements the CRUD actions for Ventas model.
  */
 class VentasController extends Controller
+
+
 {
+
+    public function behaviors()
+{
+    return [
+        'access' => [
+            'class' => \yii\filters\AccessControl::class,
+            'rules' => [
+                [
+                    'allow' => true,
+                    'roles' => ['@'], // solo usuarios autenticados
+                    'matchCallback' => function ($rule, $action) {
+                        /** @var \app\models\Usuario $user */
+                        $user = Yii::$app->user->identity;
+                        return $user && $user->can(
+                            $action->controller->id, // ejemplo: "ventas"
+                            $action->id              // ejemplo: "index", "create"
+                        );
+                    }
+                ],
+            ],
+        ],
+    ];
+}
+
     /**
      * @inheritDoc
      */
-    public function behaviors()
-    {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                        'update-field' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
-    /**
-     * Lists all Ventas models.
-     *
-     * @return string
-     */
-    public function actionIndex()
+public function actionIndex()
 {
     $searchModel = new VentasSearch();
     $searchModel->load(Yii::$app->request->queryParams);
 
-    // Query principal con join y orden personalizado
+    // Query principal usando columnas reales de la tabla "ventas"
     $query = Ventas::find()
-        ->joinWith('entrega') // asegúrate de que el alias sea correcto
         ->orderBy([
-            // Primero las ventas con fecha
-            new \yii\db\Expression('CASE WHEN fecha_entrega IS NOT NULL THEN 0 ELSE 1 END ASC'),
-            // Dentro de las que tienen fecha, las más próximas primero
+            new Expression('CASE WHEN fecha_entrega IS NOT NULL THEN 0 ELSE 1 END ASC'),
             'fecha_entrega' => SORT_ASC,
-            // Para las que no tienen fecha: poner Urgente primero
-            new \yii\db\Expression("CASE WHEN catalogos.nombre = 'Urgente' THEN 0 ELSE 1 END ASC"),
-            // Finalmente, por id Ascendente
             'id' => SORT_ASC,
         ]);
 
-    // Aplicar filtros desde VentasSearch
-    if ($searchModel->entrega_id) {
+    // Aplica filtros desde VentasSearch (ejemplo con entrega_id)
+    if (!empty($searchModel->entrega_id)) {
         $query->andFilterWhere(['entrega_id' => $searchModel->entrega_id]);
     }
 
-    $filtroEntrega = \Yii::$app->request->get('entrega');
-    if ($filtroEntrega === 'urgente') {
-        $query->andWhere(['catalogos.nombre' => 'Urgente']);
-    }
-
-    $dataProvider = new \yii\data\ActiveDataProvider([
+    $dataProvider = new ActiveDataProvider([
         'query' => $query,
         'pagination' => ['pageSize' => 20],
     ]);
 
-    // Modelo para el modal
+    // Modelo para creación rápida en el modal
     $modeloNuevo = new Ventas();
     if ($modeloNuevo->load(Yii::$app->request->post()) && $modeloNuevo->save()) {
         Yii::$app->session->setFlash('success', 'Venta guardada correctamente.');
-        return $this->refresh();
+        return $this->redirect(['index']); // ✅ redirigir limpia el POST
     }
 
     return $this->render('index', [
-        'searchModel' => $searchModel, // para los filtros en el GridView
+        'searchModel'  => $searchModel,
         'dataProvider' => $dataProvider,
-        'modeloNuevo' => $modeloNuevo,
+        'modeloNuevo'  => $modeloNuevo,
     ]);
 }
 
-    /**
-     * Creates a new Ventas model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
-    
-    
+
+
+
     
     public function actionCreate()
     {

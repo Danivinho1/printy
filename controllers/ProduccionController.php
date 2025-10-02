@@ -501,11 +501,17 @@ public function actionExportExcel()
 
         // Estatus (Empaquetado)
         $estatus = $produccion->empaquetado ? $produccion->empaquetado->nombre : 'Pendiente';
-        $colores = match(strtolower($estatus)){
-            'listo' => ['bg'=>'28a745','text'=>'ffffff'],
-            'pendiente' => ['bg'=>'dc3545','text'=>'ffffff'],
-            default => $getBadgeColor($estatus)
-        };
+        switch (strtolower($estatus)) {
+            case 'listo':
+                $colores = ['bg'=>'28a745','text'=>'ffffff'];
+                break;
+            case 'pendiente':
+                $colores = ['bg'=>'dc3545','text'=>'ffffff'];
+                break;
+            default:
+                $colores = $getBadgeColor($estatus);
+                break;
+        }
         $sheet->setCellValue('L'.$row, $estatus);
         $sheet->getStyle('L'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($colores['bg']);
         $sheet->getStyle('L'.$row)->getFont()->getColor()->setRGB($colores['text']);

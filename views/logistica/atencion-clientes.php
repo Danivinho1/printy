@@ -146,11 +146,17 @@ $optionsPagoJson = htmlspecialchars(json_encode($optionsPagoArray), ENT_QUOTES, 
                         'format' => 'raw',
                         'value' => function($model) {
                             $nombre = $model['diseno_estatus_nombre'];
-                            $colores = match ($nombre) {
-                                'Pendiente' => ['bg' => '#dc3545', 'text' => '#fff'],
-                                'Listo'     => ['bg' => '#28a745', 'text' => '#fff'],
-                                default     => generarColorUnico($nombre),
-                            };
+                            switch ($nombre) {
+                                case 'Pendiente':
+                                    $colores = ['bg' => '#dc3545', 'text' => '#fff'];
+                                    break;
+                                case 'Listo':
+                                    $colores = ['bg' => '#28a745', 'text' => '#fff'];
+                                    break;
+                                default:
+                                    $colores = generarColorUnico($nombre);
+                                    break;
+                            }
                             $badge = Html::tag('span', $nombre, [
                                 'class' => 'badge',
                                 'style' => "background-color:{$colores['bg']};color:{$colores['text']}"

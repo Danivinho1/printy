@@ -12,12 +12,7 @@ use yii\widgets\ActiveForm;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-// Crear modelo para el modal
-$modeloNuevo = new Ventas();
-if ($modeloNuevo->load(Yii::$app->request->post()) && $modeloNuevo->save()) {
-    Yii::$app->session->setFlash('success', 'Venta guardada correctamente.');
-    return $this->refresh();
-}
+
 
 /** @var yii\web\View $this */
 /** @var yii\data\ActiveDataProvider $dataProvider */

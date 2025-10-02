@@ -21,7 +21,7 @@ use yii\web\IdentityInterface;
  */
 class Usuario extends ActiveRecord implements IdentityInterface
 {
-    public $new_password; // para formularios (opcional)
+    public $new_password;
 
     public static function tableName()
     {
@@ -107,48 +107,34 @@ class Usuario extends ActiveRecord implements IdentityInterface
     }
 
     // ----------------- Autorización -----------------
-    /**
-     * Comprueba si el usuario tiene permiso para $modulo::$accion
-     * - Normaliza inputs (lowercase + trim)
-     * - Devuelve true si el role tiene es_admin = 1
-     * - Cachea permisos por role_id con key "role_perms_{roleId}" (TTL 3600s)
-     * - Soporta permiso global admin::all si existe
-     *
-     * @param string $modulo
-     * @param string $accion
-     * @return bool
-     */
     public function can($modulo, $accion = 'index'): bool
     {
-        // Normalizar inputs
         $modulo = mb_strtolower(trim((string)$modulo));
         $accion = mb_strtolower(trim((string)$accion));
 
-        // role_id valido?
         $roleId = (int)$this->role_id;
         if ($roleId <= 0) {
-            Yii::info("can(): user {$this->id} sin role_id válido", __METHOD__);
+            Yii::info("can(): user={$this->id} sin role_id válido", __METHOD__);
             return false;
         }
 
-        // Fast-path: rol administrador
-        if ($this->role && (int)$this->role->es_admin === 1) {
-            Yii::info("can(): user {$this->id} es_admin => ALLOW", __METHOD__);
+        // Fast path: validar si el rol es admin
+        $isAdmin = (new \yii\db\Query())
+            ->select('es_admin')
+            ->from('roles')
+            ->where(['id' => $roleId, 'activo' => 1])
+            ->scalar();
+
+        if ((int)$isAdmin === 1) {
+            Yii::info("can(): user={$this->id} (role={$roleId}) es_admin => ALLOW", __METHOD__);
             return true;
         }
 
+        // Cache de permisos por rol
         $cacheKey = "role_perms_{$roleId}";
-        $perms = null;
-        try {
-            $perms = Yii::$app->cache->get($cacheKey);
-        } catch (\Throwable $e) {
-            // Si la cache falla no queremos bloquear la comprobación: seguiremos consultando BD
-            Yii::warning("can(): fallo al leer cache {$cacheKey}: " . $e->getMessage(), __METHOD__);
-            $perms = false;
-        }
+        $perms = Yii::$app->cache->get($cacheKey);
 
-        if ($perms === false) {
-            // Cargar permisos desde BD
+        if ($perms === false || $perms === null) {
             $rows = (new \yii\db\Query())
                 ->select(['p.modulo', 'p.accion'])
                 ->from('permisos p')
@@ -162,26 +148,27 @@ class Usuario extends ActiveRecord implements IdentityInterface
                 $perms[$k] = true;
             }
 
-            try {
-                Yii::$app->cache->set($cacheKey, $perms, 3600);
-            } catch (\Throwable $e) {
-                Yii::warning("can(): fallo al escribir cache {$cacheKey}: " . $e->getMessage(), __METHOD__);
-            }
-
-            Yii::info("can(): cache cargado para role {$roleId} con " . count($perms) . " permisos", __METHOD__);
+            Yii::info("can(): permisos cargados para role={$roleId}: " . implode(', ', array_keys($perms)), __METHOD__);
+            Yii::$app->cache->set($cacheKey, $perms, 3600);
         }
 
-        // Soporte para permiso global admin::all
+        // Permiso global admin::all
         if (!empty($perms['admin::all'])) {
-            Yii::info("can(): user {$this->id} tiene admin::all => ALLOW", __METHOD__);
+            Yii::info("can(): user={$this->id} tiene admin::all => ALLOW", __METHOD__);
             return true;
         }
 
-        $key = $modulo . '::' . $accion;
-        $result = !empty($perms[$key]);
+        $key = trim($modulo) . '::' . trim($accion);
+        Yii::info("DEBUG permisos -> comparando {$key} con " . implode(', ', array_keys($perms)), __METHOD__);
 
-        Yii::info("can(): user {$this->id} check {$key} => " . ($result ? 'ALLOW' : 'DENY'), __METHOD__);
+        foreach ($perms as $permKey => $val) {
+            if (strcasecmp(trim($permKey), $key) === 0) {
+                Yii::info("can(): user={$this->id}, role={$roleId}, match={$permKey} == {$key} => ALLOW", __METHOD__);
+                return true;
+            }
+        }
 
-        return $result;
+        Yii::info("can(): user={$this->id}, role={$roleId}, check={$key} => DENY", __METHOD__);
+        return false;
     }
 }
