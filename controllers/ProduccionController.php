@@ -46,47 +46,48 @@ class ProduccionController extends Controller
      * Lists all Produccion models.
      *
      * @return string
-     */public function actionIndex()
-{
-    $searchModel = new ProduccionSearch();
+     */
+    public function actionIndex()
+    {
+        $searchModel = new ProduccionSearch();
 
-    // 🔹 Cargar parámetros de la request
-    $params = Yii::$app->request->queryParams;
+        // 🔹 Cargar parámetros de la request
+        $params = Yii::$app->request->queryParams;
 
-    // 🔹 Pasar al search
-    $dataProvider = $searchModel->search($params);
+        // 🔹 Pasar al search
+        $dataProvider = $searchModel->search($params);
 
-    // 🔹 Obtener el ID de "Listo" en catálogos (tipo estatus)
-    $listoId = Catalogos::find()
-        ->select('id')
-        ->where(['nombre' => 'Listo', 'tipo' => 'estatus'])
-        ->scalar();
+        // 🔹 Obtener el ID de "Listo" en catálogos (tipo estatus)
+        $listoId = Catalogos::find()
+            ->select('id')
+            ->where(['nombre' => 'Listo', 'tipo' => 'estatus'])
+            ->scalar();
 
-    // 🔹 Filtrar SIEMPRE por diseños en estatus "Listo"
-    $dataProvider->query
-        ->joinWith(['venta.diseno d'])
-        ->andWhere(['d.estatus_id' => $listoId]);
+        // 🔹 Filtrar SIEMPRE por diseños en estatus "Listo"
+        $dataProvider->query
+            ->joinWith(['venta.diseno d'])
+            ->andWhere(['d.estatus_id' => $listoId]);
 
-    return $this->render('index', [
-        'searchModel'  => $searchModel,
-        'dataProvider' => $dataProvider,
-    ]);
-}
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
 
 
-    
+
     public function actionImpresion()
-{
-    // Obtener el ID del estatus "Listo" desde catalogos
-    $listoId = Catalogos::find()->select('id')->where(['nombre' => 'Listo', 'tipo' => 'estatus'])->scalar();
+    {
+        // Obtener el ID del estatus "Listo" desde catalogos
+        $listoId = Catalogos::find()->select('id')->where(['nombre' => 'Listo', 'tipo' => 'estatus'])->scalar();
 
-    $query = Produccion::find()
-        ->alias('p')
-        ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
-        ->andWhere(['d.estatus_id' => $listoId]);
+        $query = Produccion::find()
+            ->alias('p')
+            ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
+            ->andWhere(['d.estatus_id' => $listoId]);
 
-    // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
-    $query->addOrderBy(new Expression("
+        // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
+        $query->addOrderBy(new Expression("
         CASE
             WHEN v.fecha_entrega IS NOT NULL THEN 1
             WHEN e.nombre = 'Urgente' THEN 2
@@ -97,33 +98,34 @@ class ProduccionController extends Controller
             ELSE NOW()
         END ASC
     "));
-    $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
+        $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
 
-    $dataProvider = new ActiveDataProvider([
-        'query' => $query,
-        'pagination' => ['pageSize' => 20],
-        'sort' => false, // ya definimos el orden manualmente
-    ]);
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => ['pageSize' => 20],
+            'sort' => false, // ya definimos el orden manualmente
+        ]);
 
-    return $this->render('impresion', [
-        'dataProvider' => $dataProvider,
-    ]);
-}  
-    
+        return $this->render('impresion', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
     public function actionCorte()
-{
-    $query = Produccion::find()
-    ->alias('p')
-    ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
-    ->andWhere(['or',
-    ['p.diseno_impresion' => 1],
-    ['p.no_impresion' => 1]
-]);
+    {
+        $query = Produccion::find()
+            ->alias('p')
+            ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
+            ->andWhere([
+                'or',
+                ['p.diseno_impresion' => 1],
+                ['p.no_impresion' => 1]
+            ]);
 
 
 
-    // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
-    $query->addOrderBy(new Expression("
+        // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
+        $query->addOrderBy(new Expression("
         CASE
             WHEN v.fecha_entrega IS NOT NULL THEN 1
             WHEN e.nombre = 'Urgente' THEN 2
@@ -134,29 +136,29 @@ class ProduccionController extends Controller
             ELSE NOW()
         END ASC
     "));
-    $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
+        $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
 
-    $dataProvider = new ActiveDataProvider([
-        'query' => $query,
-        'pagination' => ['pageSize' => 20],
-        'sort' => false, // ya definimos el orden manualmente
-    ]);
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => ['pageSize' => 20],
+            'sort' => false, // ya definimos el orden manualmente
+        ]);
 
-    return $this->render('corte', [
-        'dataProvider' => $dataProvider,
-    ]);
-}    
+        return $this->render('corte', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
 
     public function actionFabricacion()
-{
-    $query = Produccion::find()
-    ->alias('p')
-    ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
-    ->andWhere(['p.corte_listo' => 1]);
+    {
+        $query = Produccion::find()
+            ->alias('p')
+            ->joinWith(['venta v', 'venta.diseno d', 'venta.diseno.entrega e'])
+            ->andWhere(['p.corte_listo' => 1]);
 
 
-    // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
-    $query->addOrderBy(new Expression("
+        // Orden similar a DisenoSearch: fecha_entrega, urgente, luego otros
+        $query->addOrderBy(new Expression("
         CASE
             WHEN v.fecha_entrega IS NOT NULL THEN 1
             WHEN e.nombre = 'Urgente' THEN 2
@@ -167,18 +169,18 @@ class ProduccionController extends Controller
             ELSE NOW()
         END ASC
     "));
-    $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
+        $query->addOrderBy(['d.id' => SORT_ASC, 'd.created_at' => SORT_ASC]);
 
-    $dataProvider = new ActiveDataProvider([
-        'query' => $query,
-        'pagination' => ['pageSize' => 20],
-        'sort' => false, // ya definimos el orden manualmente
-    ]);
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => ['pageSize' => 20],
+            'sort' => false, // ya definimos el orden manualmente
+        ]);
 
-    return $this->render('fabricacion', [
-        'dataProvider' => $dataProvider,
-    ]);
-}
+        return $this->render('fabricacion', [
+            'dataProvider' => $dataProvider,
+        ]);
+    }
 
     /**
      * Displays a single Produccion model.
@@ -264,276 +266,288 @@ class ProduccionController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
-    
+
     public function actionToggle()
-{
-    $id = Yii::$app->request->post('id');
-    $field = Yii::$app->request->post('field');
-
-    $model = Produccion::findOne($id);
-    if (!$model) {
-        return $this->asJson(['success' => false, 'error' => 'Producción no encontrada']);
-    }
-
-    // Campos permitidos para toggles
-    $allowedFields = ['diseno_impresion', 'corte_listo', 'fabricacion_listo', 'vector_listo', 'no_impresion'];
-    if (!in_array($field, $allowedFields)) {
-        return $this->asJson(['success' => false, 'error' => 'Campo inválido']);
-    }
-
-    // Inicializar si NULL
-    if ($model->$field === null) {
-        $model->$field = 0;
-    }
-
-    // Alternar valor
-    $model->$field = $model->$field ? 0 : 1;
-
-    if ($model->save(false)) {
-        return $this->asJson(['success' => true, 'value' => (int)$model->$field]);
-    } else {
-        return $this->asJson(['success' => false, 'error' => 'No se pudo guardar']);
-    }
-}
-public function actionGuardarEnlace()
-{
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-    try {
-        $id = Yii::$app->request->post('id'); // id de Produccion
-        $enlace = Yii::$app->request->post('enlace_vector');
-
-        if (!$id) {
-            return ['success' => false, 'error' => 'ID no proporcionado'];
-        }
+    {
+        $id = Yii::$app->request->post('id');
+        $field = Yii::$app->request->post('field');
 
         $model = Produccion::findOne($id);
-
         if (!$model) {
-            return ['success' => false, 'error' => 'Registro no encontrado'];
+            return $this->asJson(['success' => false, 'error' => 'Producción no encontrada']);
         }
 
-        $model->enlace_vector = $enlace;
+        // Campos permitidos para toggles
+        $allowedFields = ['diseno_impresion', 'corte_listo', 'fabricacion_listo', 'vector_listo', 'no_impresion'];
+        if (!in_array($field, $allowedFields)) {
+            return $this->asJson(['success' => false, 'error' => 'Campo inválido']);
+        }
 
-        // 🔹 Guardar solo este atributo, sin validar otros campos obligatorios
-        if ($model->save(false, ['enlace_vector'])) {
-            return ['success' => true];
+        // Inicializar si NULL
+        if ($model->$field === null) {
+            $model->$field = 0;
+        }
+
+        // Alternar valor
+        $model->$field = $model->$field ? 0 : 1;
+
+        if ($model->save(false)) {
+            return $this->asJson(['success' => true, 'value' => (int) $model->$field]);
         } else {
-            return ['success' => false, 'error' => 'No se pudo guardar el enlace'];
-        }
-
-    } catch (\Exception $e) {
-        return ['success' => false, 'error' => $e->getMessage()];
-    }
-}
-
-
-public function actionToggleField()
-{
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-    $id = Yii::$app->request->post('id');
-    $field = Yii::$app->request->post('field');
-    $value = Yii::$app->request->post('value');
-
-    $model = Produccion::findOne($id);
-    if($model && $field == 'empaquetado_id'){
-        $model->$field = $value;
-        if($model->save(false)){
-            return [
-                'success' => true,
-                'nombre' => $model->empaquetado ? $model->empaquetado->nombre : 'Desconocido'
-            ];
+            return $this->asJson(['success' => false, 'error' => 'No se pudo guardar']);
         }
     }
-    return ['success'=>false];
-}
- public function actionUpdateCheck()
-{
-    $id = Yii::$app->request->post('id');
-    $field = Yii::$app->request->post('field');
-    $value = Yii::$app->request->post('value');
+    public function actionGuardarEnlace()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    $model = Produccion::findOne($id);
-    if($model && in_array($field, ['diseno_impresion','corte_listo','fabricacion_listo'])) {
-        $model->$field = $value;
-        if($model->save(false)) return 'ok';
-    }
+        try {
+            $id = Yii::$app->request->post('id'); // id de Produccion
+            $enlace = Yii::$app->request->post('enlace_vector');
 
-    Yii::$app->response->statusCode = 400;
-    return 'error';
-}
-
-public function actionExportExcel()
-{
-    $producciones = Produccion::find()->all(); // Cambia por tu modelo de Producción
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-
-    // Título
-    $mes = date('F Y');
-    $sheet->setCellValue('A1', "Producción del mes: $mes");
-    $sheet->mergeCells('A1:Q1'); // Ajustado para más columnas
-    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-    $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-    // Encabezados basados en el GridView de letreros adaptado para producción
-    $headers = [
-        'ID', 'Tipo Letrero', 'Nombre Letrero', 'Entrega', 'Diseñador', 'Unidades',
-        'Diseño Impresión', 'Corte', 'Fabricación', 'Fecha Entrega', 'Días Restantes', 'Estatus'
-    ];
-    $col = 'A';
-    foreach ($headers as $header) {
-        $sheet->setCellValue($col.'2', $header);
-        $sheet->getStyle($col.'2')->getFont()->setBold(true);
-        $col++;
-    }
-
-    // Función de color igual que en badges
-    $getBadgeColor = function($nombre){
-        if (!$nombre) return ['bg'=>'CCCCCC','text'=>'000000'];
-        $hash = substr(md5($nombre),0,6);
-        return ['bg'=>$hash,'text'=>'FFFFFF'];
-    };
-
-    $row = 3;
-    foreach($producciones as $produccion){
-        $sheet->setCellValue('A'.$row, $produccion->id);
-
-        // Tipo Letrero
-        $tipo = $produccion->tipoLetrero->nombre ?? 'No definido';
-        $color = $getBadgeColor($tipo);
-        $sheet->setCellValue('B'.$row, $tipo);
-        $sheet->getStyle('B'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
-        $sheet->getStyle('B'.$row)->getFont()->getColor()->setRGB($color['text']);
-
-        // Nombre Letrero
-        $sheet->setCellValue('C'.$row, $produccion->nombre_letrero);
-
-        // Entrega
-        $entrega = $produccion->venta->entrega->nombre ?? 'No definido';
-        $color = $getBadgeColor($entrega);
-        $sheet->setCellValue('D'.$row, $entrega);
-        $sheet->getStyle('D'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
-        $sheet->getStyle('D'.$row)->getFont()->getColor()->setRGB($color['text']);
-
-        // Diseñador
-        $disenador = $produccion->disenador->nombre ?? 'Sin asignar';
-        $color = $getBadgeColor($disenador);
-        $sheet->setCellValue('E'.$row, $disenador);
-        $sheet->getStyle('E'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
-        $sheet->getStyle('E'.$row)->getFont()->getColor()->setRGB($color['text']);
-
-        // Unidades
-        $sheet->setCellValue('F'.$row, $produccion->unidades);
-
-        // Diseño Impresión
-        $disenoImpresion = $produccion->diseno_impresion == 1 ? '✓' : '✗';
-        $sheet->setCellValue('G'.$row, $disenoImpresion);
-        $sheet->getStyle('G'.$row)->getFont()->setBold(true);
-        $sheet->getStyle('G'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        if ($produccion->diseno_impresion == 1) {
-            $sheet->getStyle('G'.$row)->getFont()->getColor()->setRGB('28a745');
-        } else {
-            $sheet->getStyle('G'.$row)->getFont()->getColor()->setRGB('dc3545');
-        }
-
-        // Corte Listo
-        $corteListo = $produccion->corte_listo == 1 ? '✓' : '✗';
-        $sheet->setCellValue('H'.$row, $corteListo);
-        $sheet->getStyle('H'.$row)->getFont()->setBold(true);
-        $sheet->getStyle('H'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        if ($produccion->corte_listo == 1) {
-            $sheet->getStyle('H'.$row)->getFont()->getColor()->setRGB('28a745');
-        } else {
-            $sheet->getStyle('H'.$row)->getFont()->getColor()->setRGB('dc3545');
-        }
-
-        // Fabricación Listo
-        $fabricacionListo = $produccion->fabricacion_listo == 1 ? '✓' : '✗';
-        $sheet->setCellValue('I'.$row, $fabricacionListo);
-        $sheet->getStyle('I'.$row)->getFont()->setBold(true);
-        $sheet->getStyle('I'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        if ($produccion->fabricacion_listo == 1) {
-            $sheet->getStyle('I'.$row)->getFont()->getColor()->setRGB('28a745');
-        } else {
-            $sheet->getStyle('I'.$row)->getFont()->getColor()->setRGB('dc3545');
-        }
-
-        // Fecha Entrega
-        $fechaEntrega = ($produccion->venta && $produccion->venta->fecha_entrega) 
-            ? Yii::$app->formatter->asDate($produccion->venta->fecha_entrega, 'php:d/m/Y') 
-            : 'No definida';
-        $sheet->setCellValue('J'.$row, $fechaEntrega);
-
-        // Días Restantes
-        if ($produccion->venta && $produccion->venta->fecha_entrega) {
-            $hoy = new \DateTime();
-            $fechaEntrega = new \DateTime($produccion->venta->fecha_entrega);
-
-            $diasHabiles = 0;
-            $fechaIter = clone $hoy;
-
-            // Contar solo lunes a viernes
-            while ($fechaIter <= $fechaEntrega) {
-                $diaSemana = (int)$fechaIter->format('N'); // 1=lunes, 7=domingo
-                if ($diaSemana < 6) { 
-                    $diasHabiles++;
-                }
-                $fechaIter->modify('+1 day');
+            if (!$id) {
+                return ['success' => false, 'error' => 'ID no proporcionado'];
             }
 
-            $diasText = $diasHabiles . ' día' . ($diasHabiles == 1 ? '' : 's');
-            $sheet->setCellValue('K'.$row, $diasText);
+            $model = Produccion::findOne($id);
 
-            // Colorear según días restantes
-            if ($diasHabiles > 5) {
-                $sheet->getStyle('K'.$row)->getFont()->getColor()->setRGB('28a745'); // Verde
-            } elseif ($diasHabiles >= 1) {
-                $sheet->getStyle('K'.$row)->getFont()->getColor()->setRGB('ffc107'); // Amarillo
+            if (!$model) {
+                return ['success' => false, 'error' => 'Registro no encontrado'];
+            }
+
+            $model->enlace_vector = $enlace;
+
+            // 🔹 Guardar solo este atributo, sin validar otros campos obligatorios
+            if ($model->save(false, ['enlace_vector'])) {
+                return ['success' => true];
             } else {
-                $sheet->getStyle('K'.$row)->getFont()->getColor()->setRGB('dc3545'); // Rojo
+                return ['success' => false, 'error' => 'No se pudo guardar el enlace'];
             }
-        } else {
-            $sheet->setCellValue('K'.$row, 'No definida');
-            $sheet->getStyle('K'.$row)->getFont()->getColor()->setRGB('6c757d'); // Gris
-        }
 
-        // Estatus (Empaquetado)
-        $estatus = $produccion->empaquetado ? $produccion->empaquetado->nombre : 'Pendiente';
-        switch (strtolower($estatus)) {
-            case 'listo':
-                $colores = ['bg'=>'28a745','text'=>'ffffff'];
-                break;
-            case 'pendiente':
-                $colores = ['bg'=>'dc3545','text'=>'ffffff'];
-                break;
-            default:
-                $colores = $getBadgeColor($estatus);
-                break;
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
         }
-        $sheet->setCellValue('L'.$row, $estatus);
-        $sheet->getStyle('L'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($colores['bg']);
-        $sheet->getStyle('L'.$row)->getFont()->getColor()->setRGB($colores['text']);
-
-        $row++;
     }
 
-    // Auto-ajustar columnas
-    foreach(range('A','L') as $colID){
-        $sheet->getColumnDimension($colID)->setAutoSize(true);
+
+    public function actionToggleField()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+        $id = Yii::$app->request->post('id');
+        $field = Yii::$app->request->post('field');
+        $value = Yii::$app->request->post('value');
+
+        $model = Produccion::findOne($id);
+        if ($model && $field == 'empaquetado_id') {
+            $model->$field = $value;
+            if ($model->save(false)) {
+                return [
+                    'success' => true,
+                    'nombre' => $model->empaquetado ? $model->empaquetado->nombre : 'Desconocido'
+                ];
+            }
+        }
+        return ['success' => false];
+    }
+    public function actionUpdateCheck()
+    {
+        $id = Yii::$app->request->post('id');
+        $field = Yii::$app->request->post('field');
+        $value = Yii::$app->request->post('value');
+
+        $model = Produccion::findOne($id);
+        if ($model && in_array($field, ['diseno_impresion', 'corte_listo', 'fabricacion_listo'])) {
+            $model->$field = $value;
+            if ($model->save(false))
+                return 'ok';
+        }
+
+        Yii::$app->response->statusCode = 400;
+        return 'error';
     }
 
-    $writer = new Xlsx($spreadsheet);
-    $fileName = "produccion_$mes.xlsx";
+    public function actionExportExcel()
+    {
+        $producciones = Produccion::find()->all(); // Cambia por tu modelo de Producción
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header("Content-Disposition: attachment;filename=\"$fileName\"");
-    header('Cache-Control: max-age=0');
+        // Título
+        $mes = date('F Y');
+        $sheet->setCellValue('A1', "Producción del mes: $mes");
+        $sheet->mergeCells('A1:Q1'); // Ajustado para más columnas
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    $writer->save('php://output');
-    exit;
-}
+        // Encabezados basados en el GridView de letreros adaptado para producción
+        $headers = [
+            'ID',
+            'Tipo Letrero',
+            'Nombre Letrero',
+            'Entrega',
+            'Diseñador',
+            'Unidades',
+            'Diseño Impresión',
+            'Corte',
+            'Fabricación',
+            'Fecha Entrega',
+            'Días Restantes',
+            'Estatus'
+        ];
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '2', $header);
+            $sheet->getStyle($col . '2')->getFont()->setBold(true);
+            $col++;
+        }
+
+        // Función de color igual que en badges
+        $getBadgeColor = function ($nombre) {
+            if (!$nombre)
+                return ['bg' => 'CCCCCC', 'text' => '000000'];
+            $hash = substr(md5($nombre), 0, 6);
+            return ['bg' => $hash, 'text' => 'FFFFFF'];
+        };
+
+        $row = 3;
+        foreach ($producciones as $produccion) {
+            $sheet->setCellValue('A' . $row, $produccion->id);
+
+            // Tipo Letrero
+            $tipo = $produccion->tipoLetrero->nombre ?? 'No definido';
+            $color = $getBadgeColor($tipo);
+            $sheet->setCellValue('B' . $row, $tipo);
+            $sheet->getStyle('B' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+            $sheet->getStyle('B' . $row)->getFont()->getColor()->setRGB($color['text']);
+
+            // Nombre Letrero
+            $sheet->setCellValue('C' . $row, $produccion->nombre_letrero);
+
+            // Entrega
+            $entrega = $produccion->venta->entrega->nombre ?? 'No definido';
+            $color = $getBadgeColor($entrega);
+            $sheet->setCellValue('D' . $row, $entrega);
+            $sheet->getStyle('D' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+            $sheet->getStyle('D' . $row)->getFont()->getColor()->setRGB($color['text']);
+
+            // Diseñador
+            $disenador = $produccion->disenador->nombre ?? 'Sin asignar';
+            $color = $getBadgeColor($disenador);
+            $sheet->setCellValue('E' . $row, $disenador);
+            $sheet->getStyle('E' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color['bg']);
+            $sheet->getStyle('E' . $row)->getFont()->getColor()->setRGB($color['text']);
+
+            // Unidades
+            $sheet->setCellValue('F' . $row, $produccion->unidades);
+
+            // Diseño Impresión
+            $disenoImpresion = $produccion->diseno_impresion == 1 ? '✓' : '✗';
+            $sheet->setCellValue('G' . $row, $disenoImpresion);
+            $sheet->getStyle('G' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            if ($produccion->diseno_impresion == 1) {
+                $sheet->getStyle('G' . $row)->getFont()->getColor()->setRGB('28a745');
+            } else {
+                $sheet->getStyle('G' . $row)->getFont()->getColor()->setRGB('dc3545');
+            }
+
+            // Corte Listo
+            $corteListo = $produccion->corte_listo == 1 ? '✓' : '✗';
+            $sheet->setCellValue('H' . $row, $corteListo);
+            $sheet->getStyle('H' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            if ($produccion->corte_listo == 1) {
+                $sheet->getStyle('H' . $row)->getFont()->getColor()->setRGB('28a745');
+            } else {
+                $sheet->getStyle('H' . $row)->getFont()->getColor()->setRGB('dc3545');
+            }
+
+            // Fabricación Listo
+            $fabricacionListo = $produccion->fabricacion_listo == 1 ? '✓' : '✗';
+            $sheet->setCellValue('I' . $row, $fabricacionListo);
+            $sheet->getStyle('I' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('I' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            if ($produccion->fabricacion_listo == 1) {
+                $sheet->getStyle('I' . $row)->getFont()->getColor()->setRGB('28a745');
+            } else {
+                $sheet->getStyle('I' . $row)->getFont()->getColor()->setRGB('dc3545');
+            }
+
+            // Fecha Entrega
+            $fechaEntrega = ($produccion->venta && $produccion->venta->fecha_entrega)
+                ? Yii::$app->formatter->asDate($produccion->venta->fecha_entrega, 'php:d/m/Y')
+                : 'No definida';
+            $sheet->setCellValue('J' . $row, $fechaEntrega);
+
+            // Días Restantes
+            if ($produccion->venta && $produccion->venta->fecha_entrega) {
+                $hoy = new \DateTime();
+                $fechaEntrega = new \DateTime($produccion->venta->fecha_entrega);
+
+                $diasHabiles = 0;
+                $fechaIter = clone $hoy;
+
+                // Contar solo lunes a viernes
+                while ($fechaIter <= $fechaEntrega) {
+                    $diaSemana = (int) $fechaIter->format('N'); // 1=lunes, 7=domingo
+                    if ($diaSemana < 6) {
+                        $diasHabiles++;
+                    }
+                    $fechaIter->modify('+1 day');
+                }
+
+                $diasText = $diasHabiles . ' día' . ($diasHabiles == 1 ? '' : 's');
+                $sheet->setCellValue('K' . $row, $diasText);
+
+                // Colorear según días restantes
+                if ($diasHabiles > 5) {
+                    $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('28a745'); // Verde
+                } elseif ($diasHabiles >= 1) {
+                    $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('ffc107'); // Amarillo
+                } else {
+                    $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('dc3545'); // Rojo
+                }
+            } else {
+                $sheet->setCellValue('K' . $row, 'No definida');
+                $sheet->getStyle('K' . $row)->getFont()->getColor()->setRGB('6c757d'); // Gris
+            }
+
+            // Estatus (Empaquetado)
+            $estatus = $produccion->empaquetado ? $produccion->empaquetado->nombre : 'Pendiente';
+            switch (strtolower($estatus)) {
+                case 'listo':
+                    $colores = ['bg' => '28a745', 'text' => 'ffffff'];
+                    break;
+                case 'pendiente':
+                    $colores = ['bg' => 'dc3545', 'text' => 'ffffff'];
+                    break;
+                default:
+                    $colores = $getBadgeColor($estatus);
+                    break;
+            }
+            $sheet->setCellValue('L' . $row, $estatus);
+            $sheet->getStyle('L' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($colores['bg']);
+            $sheet->getStyle('L' . $row)->getFont()->getColor()->setRGB($colores['text']);
+
+            $row++;
+        }
+
+        // Auto-ajustar columnas
+        foreach (range('A', 'L') as $colID) {
+            $sheet->getColumnDimension($colID)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = "produccion_$mes.xlsx";
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment;filename=\"$fileName\"");
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
 
 
 

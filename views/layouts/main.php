@@ -508,6 +508,18 @@ $ultimasVentas = (clone $queryBase)
         </div>
     </div>
 </div>
+<!-- ✅ Marketing (nuevo módulo) -->
+            <a href="<?= Url::to(['/campanas/index']) ?>"
+               class="<?= Yii::$app->controller->id === 'campanas'
+                    ? 'text-blue-600 bg-blue-50/50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' ?>
+                    whitespace-nowrap inline-flex items-center px-4 py-4 text-sm font-medium transition-all duration-200">
+                <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path d="M12 20v-6l8-5-8-5-8 5v6z"/>
+                    <circle cx="12" cy="12" r="10" stroke-width="1.5" />
+                </svg>
+                Marketing
+            </a>
 
 <?php
 // Mostrar Administración solo para usuarios con admin o permisos equivalentes

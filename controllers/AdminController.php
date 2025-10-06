@@ -12,8 +12,8 @@ class AdminController extends Controller
     {
         // KPIs rápidos
         $totalUsuarios = (int) Usuario::find()->count();
-        $totalRoles    = (int) Role::find()->count();
-        $totalPerms    = (int) Permiso::find()->count();
+        $totalRoles = (int) Role::find()->count();
+        $totalPerms = (int) Permiso::find()->count();
 
         // Últimos usuarios actualizados/creados
         $ultimosUsuarios = Usuario::find()
@@ -23,9 +23,9 @@ class AdminController extends Controller
             ->all();
 
         return $this->render('index', [
-            'totalUsuarios'   => $totalUsuarios,
-            'totalRoles'      => $totalRoles,
-            'totalPerms'      => $totalPerms,
+            'totalUsuarios' => $totalUsuarios,
+            'totalRoles' => $totalRoles,
+            'totalPerms' => $totalPerms,
             'ultimosUsuarios' => $ultimosUsuarios,
         ]);
     }

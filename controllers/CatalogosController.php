@@ -148,120 +148,120 @@ class CatalogosController extends Controller
     public function actionCreateAjax()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        
+
         if (!Yii::$app->request->isPost) {
             return ['success' => false, 'error' => 'Método no permitido'];
         }
-        
+
         $nombre = Yii::$app->request->post('nombre');
         $tipo = Yii::$app->request->post('tipo');
-        
+
         if (empty($nombre) || empty($tipo)) {
             return ['success' => false, 'error' => 'Nombre y tipo son requeridos'];
         }
-        
+
         // Verificar si ya existe
         $existe = Catalogos::find()
             ->where(['nombre' => $nombre, 'tipo' => $tipo])
             ->exists();
-            
+
         if ($existe) {
             return ['success' => false, 'error' => 'Ya existe un elemento con ese nombre'];
         }
-        
+
         $model = new Catalogos();
         $model->nombre = $nombre;
         $model->tipo = $tipo;
         $model->activo = 1; // o el campo que uses para activar
-        
+
         if ($model->save()) {
             return [
-                'success' => true, 
-                'id' => $model->id, 
+                'success' => true,
+                'id' => $model->id,
                 'nombre' => $model->nombre
             ];
         } else {
             return ['success' => false, 'error' => 'Error al guardar: ' . implode(', ', $model->getFirstErrors())];
         }
     }
-    
+
     /**
      * Actualizar elemento via AJAX
      */
     public function actionUpdateAjax()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        
+
         if (!Yii::$app->request->isPost) {
             return ['success' => false, 'error' => 'Método no permitido'];
         }
-        
+
         $id = Yii::$app->request->post('id');
         $nombre = Yii::$app->request->post('nombre');
         $tipo = Yii::$app->request->post('tipo');
-        
+
         if (empty($id) || empty($nombre) || empty($tipo)) {
             return ['success' => false, 'error' => 'ID, nombre y tipo son requeridos'];
         }
-        
+
         $model = Catalogos::findOne($id);
         if (!$model) {
             return ['success' => false, 'error' => 'Elemento no encontrado'];
         }
-        
+
         // Verificar si ya existe otro con el mismo nombre (excluyendo el actual)
         $existe = Catalogos::find()
             ->where(['nombre' => $nombre, 'tipo' => $tipo])
             ->andWhere(['!=', 'id', $id])
             ->exists();
-            
+
         if ($existe) {
             return ['success' => false, 'error' => 'Ya existe otro elemento con ese nombre'];
         }
-        
+
         $model->nombre = $nombre;
-        
+
         if ($model->save()) {
             return [
-                'success' => true, 
-                'id' => $model->id, 
+                'success' => true,
+                'id' => $model->id,
                 'nombre' => $model->nombre
             ];
         } else {
             return ['success' => false, 'error' => 'Error al actualizar: ' . implode(', ', $model->getFirstErrors())];
         }
     }
-    
+
     /**
      * Eliminar elemento via AJAX
      */
     public function actionDeleteAjax()
-{
-    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-    $ids = Yii::$app->request->post('id');
-    $tipo = Yii::$app->request->post('tipo');
+        $ids = Yii::$app->request->post('id');
+        $tipo = Yii::$app->request->post('tipo');
 
-    if (empty($ids)) {
-        return ['success' => false, 'error' => 'No se recibieron elementos a eliminar'];
-    }
-
-    if (!is_array($ids)) {
-        $ids = [$ids]; // si viene 1 solo
-    }
-
-    try {
-        foreach ($ids as $id) {
-            $model = Catalogos::findOne(['id' => $id, 'tipo' => $tipo]);
-            if ($model) {
-                $model->delete();
-            }
+        if (empty($ids)) {
+            return ['success' => false, 'error' => 'No se recibieron elementos a eliminar'];
         }
-        return ['success' => true];
-    } catch (\Exception $e) {
-        return ['success' => false, 'error' => $e->getMessage()];
+
+        if (!is_array($ids)) {
+            $ids = [$ids]; // si viene 1 solo
+        }
+
+        try {
+            foreach ($ids as $id) {
+                $model = Catalogos::findOne(['id' => $id, 'tipo' => $tipo]);
+                if ($model) {
+                    $model->delete();
+                }
+            }
+            return ['success' => true];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
     }
-}
 
 
 }

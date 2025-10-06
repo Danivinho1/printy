@@ -237,7 +237,6 @@ public function beforeSave($insert)
     return false;
 }
 
-// Y también actualiza tu vista para que no muestre "Pendiente" cuando sea null:
 
 
 }

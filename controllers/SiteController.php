@@ -70,7 +70,7 @@ class SiteController extends Controller
             Yii::$app->response->redirect(['site/login'])->send();
             return '';
         }
-        
+
         $mesActual = date('Y-m');
         $ventasDelMes = Ventas::find()
             ->where(['like', 'fecha_compra', $mesActual])
@@ -88,10 +88,10 @@ class SiteController extends Controller
 
         // Obtener metas
         $metaUnidades = Metas::getMetaUnidades($mesActual);
-        $metaDinero   = Metas::getMetaDinero($mesActual);
+        $metaDinero = Metas::getMetaDinero($mesActual);
 
         $porcentajeUnidades = $metaUnidades > 0 ? round(($totalUnidades / $metaUnidades) * 100) : 0;
-        $porcentajeDinero   = $metaDinero > 0 ? round(($totalDinero / $metaDinero) * 100) : 0;
+        $porcentajeDinero = $metaDinero > 0 ? round(($totalDinero / $metaDinero) * 100) : 0;
 
         // --- NUEVA LÓGICA AÑADIDA ---
         // Obtener Top 5 productos vendidos del mes
