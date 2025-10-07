@@ -9,6 +9,8 @@ use yii\widgets\ActiveForm;
 ?>
 
 <div class="campanas-form">
+    // views/campanas/_form.php
+    
 
     <?php $form = ActiveForm::begin(); ?>
 
@@ -27,6 +29,8 @@ use yii\widgets\ActiveForm;
     <?= $form->field($model, 'mensaje_predeterminado')->textarea(['rows' => 6]) ?>
 
     <?= $form->field($model, 'presupuesto')->textInput(['maxlength' => true]) ?>
+    
+    <?= $form->field($model, 'nombre')->textInput(['maxlength' => true]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>

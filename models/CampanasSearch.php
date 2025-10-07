@@ -15,13 +15,35 @@ class CampanasSearch extends Campanas
      * {@inheritdoc}
      */
     public function rules()
-    {
-        return [
-            [['id', 'campaña_id', 'asesor_id', 'mensajes', 'retorno'], 'integer'],
-            [['inversion', 'presupuesto'], 'number'],
-            [['analisis', 'mensaje_predeterminado', 'created_at', 'updated_at'], 'safe'],
-        ];
+{
+    return [
+        [['id', 'campaña_id', 'asesor_id', 'mensajes', 'retorno'], 'integer'],
+        [['nombre', 'analisis', 'mensaje_predeterminado', 'created_at', 'updated_at'], 'safe'],
+        [['inversion', 'presupuesto'], 'number'],
+    ];
+}
+
+public function search($params)
+{
+    $query = Campanas::find();
+    $dataProvider = new ActiveDataProvider(['query' => $query]);
+
+    $this->load($params);
+
+    if (!$this->validate()) {
+        return $dataProvider;
     }
+
+    $query->andFilterWhere(['id' => $this->id])
+          ->andFilterWhere(['campaña_id' => $this->campaña_id])
+          ->andFilterWhere(['asesor_id' => $this->asesor_id])
+          ->andFilterWhere(['mensajes' => $this->mensajes])
+          ->andFilterWhere(['retorno' => $this->retorno])
+          ->andFilterWhere(['like', 'nombre', $this->nombre])     // <-- filtro
+          ->andFilterWhere(['like', 'analisis', $this->analisis]);
+
+    return $dataProvider;
+}
 
     /**
      * {@inheritdoc}
@@ -40,40 +62,5 @@ class CampanasSearch extends Campanas
      *
      * @return ActiveDataProvider
      */
-    public function search($params, $formName = null)
-    {
-        $query = Campanas::find();
-
-        // add conditions that should always apply here
-
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-        ]);
-
-        $this->load($params, $formName);
-
-        if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
-            return $dataProvider;
-        }
-
-        // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-            'campaña_id' => $this->campaña_id,
-            'asesor_id' => $this->asesor_id,
-            'inversion' => $this->inversion,
-            'mensajes' => $this->mensajes,
-            'retorno' => $this->retorno,
-            'presupuesto' => $this->presupuesto,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-        ]);
-
-        $query->andFilterWhere(['like', 'analisis', $this->analisis])
-            ->andFilterWhere(['like', 'mensaje_predeterminado', $this->mensaje_predeterminado]);
-
-        return $dataProvider;
-    }
+    
 }

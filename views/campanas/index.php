@@ -240,6 +240,16 @@ function buildFilterUrl($newFilters = [])
 
             // Campaña (badge con color, clic para editar select)
             [
+    'attribute' => 'nombre',
+    'format' => 'raw',
+    'value' => function ($model) {
+        $display = Html::encode((string)$model->nombre);
+        $current = Html::encode((string)$model->nombre);
+        return "<div class='editable-field' data-field-type='text' data-field-name='nombre' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$display}</div>";
+    }
+],
+
+            [
                 'attribute' => 'campaña_id',
                 'label' => 'Campaña',
                 'format' => 'raw',
