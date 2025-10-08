@@ -11,47 +11,68 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\Response;
+use yii\filters\AccessControl;
 
 /**
  * Controlador para el módulo de Campañas (Marketing)
  */
 class CampanasController extends Controller
 {
-    /** ===============================
-     *  CONFIGURACIÓN DE BEHAVIORS
-     * =============================== */
     public function behaviors()
     {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::class,
-                    'actions' => [
-                        'delete' => ['POST'],
-                        // Endpoints AJAX
-                        'update-field' => ['POST'],
-                        'update-inline' => ['POST'],
-                        'get-select-options' => ['GET'],
-                    ],
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'only' => ['index', 'create', 'update', 'delete', 'view'],
+                'rules' => [
+                    ['allow' => true, 'roles' => ['@']],
                 ],
-            ]
-        );
+            ],
+        ];
     }
 
-    /** ===============================
-     *  LISTAR CAMPAÑAS
-     * =============================== */
     public function actionIndex()
     {
         $searchModel = new CampanasSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        // Modelo nuevo para el modal (como en Ventas)
+        $modeloNuevo = new Campanas();
+        // Valores por defecto opcionales
+        if ($modeloNuevo->isNewRecord && empty($modeloNuevo->analisis)) {
+            $modeloNuevo->analisis = 'Analizar';
+        }
+
         return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+            'searchModel'   => $searchModel,
+            'dataProvider'  => $dataProvider,
+            'modeloNuevo'   => $modeloNuevo, // clave para el modal
         ]);
     }
+
+    public function actionCreate()
+    {
+        $model = new Campanas();
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Campaña creada correctamente.');
+            return $this->redirect(['index']);
+        }
+
+        // Si quieres soportar creación vía modal con validaciones y re-render del form:
+        if (Yii::$app->request->isAjax) {
+            return $this->renderAjax('_form', ['model' => $model]);
+        }
+
+        // Fallback: vista create estándar si ingresan por URL directa
+        return $this->render('create', ['model' => $model]);
+    }
+
+    // {
+    /** ===============================
+     *  CONFIGURACIÓN DE BEHAVIORS
+     * =============================== */
+    
 
     /** ===============================
      *  VISTA DETALLADA DE UNA CAMPAÑA
@@ -66,26 +87,7 @@ class CampanasController extends Controller
     /** ===============================
      *  CREAR NUEVA CAMPAÑA
      * =============================== */
-    public function actionCreate()
-    {
-        $model = new Campanas();
-
-        if (Yii::$app->request->isPost) {
-            if ($model->load(Yii::$app->request->post())) {
-                // Evitar valores incómodos desde el form (created_at/updated_at se manejan por Behavior si lo configuras)
-                if ($model->save()) {
-                    return $this->redirect(['view', 'id' => $model->id]);
-                }
-            }
-        } else {
-            $model->loadDefaultValues();
-        }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
+    
     /** ===============================
      *  ACTUALIZAR UNA CAMPAÑA
      * =============================== */

@@ -2,12 +2,12 @@
 
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\bootstrap5\Tabs;
 use app\widgets\CustomGridView;
 
 /** @var yii\web\View $this */
-/** @var app\models\CampanasSearch $searchModel */
+/** @var app\models\CampanasSearch|null $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
+/** @var app\models\Campanas $modeloNuevo Optional: pásalo desde el controlador para el modal */
 
 $this->title = 'Marketing';
 $this->params['breadcrumbs'][] = $this->title;
@@ -49,7 +49,8 @@ function generarColorAnalisis($analisis)
     switch ($analisis) {
         case 'analizar':
             return ['bg' => '#0d6efd', 'text' => '#ffffff']; // azul
-        case 'pausa':
+        case 'pausa':      // compat
+        case 'pausar':
             return ['bg' => '#ffc107', 'text' => '#000000']; // amarillo
         case 'detener':
             return ['bg' => '#dc3545', 'text' => '#ffffff']; // rojo
@@ -93,269 +94,436 @@ function buildFilterUrl($newFilters = [])
     }
     return Url::current($params);
 }
+
+// Totales para resumen
+$items = $dataProvider->getModels();
+$sumInv = 0;
+$sumPres = 0;
+$sumRet = 0;
+$sumMsgs = 0;
+foreach ($items as $c) {
+    $sumInv += (float) ($c['inversion'] ?? 0);
+    $sumPres += (float) ($c['presupuesto'] ?? 0);
+    $sumRet += (float) ($c['retorno'] ?? 0);
+    $sumMsgs += (int) ($c['mensajes'] ?? 0);
+}
+
+$fmtMoney = fn($n) => Yii::$app->formatter->asCurrency((float) $n, 'MXN');
+$fmtInt = fn($n) => number_format((float) $n, 0, '.', ',');
 ?>
 
-<div class="campanas-index">
+<style>
+    /* Fondo y tarjetas */
+    .camps-bg {
+        background-image:
+            radial-gradient(80% 50% at 20% 0%, rgba(99, 102, 241, 0.07) 0%, rgba(99, 102, 241, 0.0) 60%),
+            radial-gradient(60% 50% at 110% 20%, rgba(236, 72, 153, 0.07) 0%, rgba(236, 72, 153, 0.0) 60%),
+            linear-gradient(#f1f5f9 1px, transparent 1px),
+            linear-gradient(90deg, #f1f5f9 1px, transparent 1px);
+        background-size: auto, auto, 24px 24px, 24px 24px;
+        background-position: center, center, -1px -1px, -1px -1px;
+        background-color: #fff;
+    }
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    .card-soft {
+        border-radius: 1rem;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(2, 6, 23, .04);
+    }
 
-    <!-- Pestañas de Marketing -->
-    <?= Tabs::widget([
-        'items' => [
-            [
-                'label' => 'Campañas',
-                'active' => true,
-                'url' => Url::to(['campanas/index']),
-            ],
-            [
-                'label' => 'Retorno',
-                'url' => Url::to(['retorno/index']),
-            ],
-            [
-                'label' => 'Comparativas Mensuales',
-                'url' => Url::to(['ventas-mensuales/index']),
-            ],
-            [
-                'label' => 'Productos Vendidos',
-                'url' => Url::to(['productos-vendidos/index']),
-            ],
-        ],
-        'options' => ['class' => 'mb-4'],
-    ]); ?>
+    .card-soft-yellow {
+        border-radius: 1rem;
+        border: 1px solid #f6e6a2;
+        background: #fffbea;
+        /* amarillo suave */
+        box-shadow: 0 8px 20px rgba(139, 92, 0, .08);
+    }
 
-    <!-- Barra superior con filtros estilo Diseño y acciones -->
-    <div class="filtros-diseño mb-4 d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <a href="<?= Url::to(['campanas/index']) ?>" class="btn-filtro <?= !$filtroAnalisis ? 'active' : '' ?>">
-                Todos
-            </a>
+    /* Tabs navegación */
+    .navtab {
+        display: inline-flex;
+        align-items: center;
+        padding: .5rem .75rem;
+        border-radius: .75rem;
+        border: 1px solid #e5e7eb;
+        color: #334155;
+        transition: background-color .15s;
+        text-decoration: none;
+    }
 
-            <a href="<?= Url::to(['campanas/index', 'analisis' => 'analizar']) ?>"
-                class="btn-filtro <?= $filtroAnalisis === 'analizar' ? 'active' : '' ?>">
-                Analizar
-            </a>
+    .navtab:hover {
+        background: #f8fafc;
+        color: #1f2937;
+    }
 
-            <a href="<?= Url::to(['campanas/index', 'analisis' => 'pausa']) ?>"
-                class="btn-filtro <?= $filtroAnalisis === 'pausa' ? 'active' : '' ?>">
-                Pausa
-            </a>
+    .navtab-active {
+        background-image: linear-gradient(90deg, #4f46e5, #7c3aed);
+        color: #fff !important;
+        border-color: transparent;
+        box-shadow: 0 8px 24px rgba(79, 70, 229, .25);
+    }
 
-            <a href="<?= Url::to(['campanas/index', 'analisis' => 'continuar']) ?>"
-                class="btn-filtro <?= $filtroAnalisis === 'continuar' ? 'active' : '' ?>">
-                Continuar
-            </a>
+    /* Barra de filtros/chips (amarilla) */
+    .filtros-diseño {
+        background-color: #fff7cc;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #f6e6a2;
+    }
 
-            <a href="<?= Url::to(['campanas/index', 'analisis' => 'detener']) ?>"
-                class="btn-filtro <?= $filtroAnalisis === 'detener' ? 'active' : '' ?>">
-                Detener
-            </a>
+    .btn-filtro {
+        background-color: #ffffff;
+        border: 1px solid #f0e3a2;
+        color: #6b5e00;
+        padding: 6px 12px;
+        border-radius: 9999px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
 
-            <a href="<?= Url::to(['campanas/index', 'analisis' => 'experimento']) ?>"
-                class="btn-filtro <?= $filtroAnalisis === 'experimento' ? 'active' : '' ?>">
-                Experimento
-            </a>
-        </div>
+    .btn-filtro:hover {
+        background-color: #fff3b0;
+        border-color: #e9d573;
+        color: #4b4700;
+    }
 
-        <div class="d-flex align-items-center gap-2">
-            <?= Html::a(
-                '<i class="fas fa-file-excel me-2"></i>Exportar a Excel',
-                ['campanas/export-excel'],
-                [
-                    'class' => 'btn btn-light border btn-sm',
-                    'title' => 'Descargar campañas en Excel',
-                    'data-bs-toggle' => 'tooltip',
-                    'data-bs-placement' => 'top'
-                ]
-            )
-                ?>
+    .btn-filtro.active {
+        background-image: linear-gradient(90deg, #f59e0b, #f97316);
+        border-color: transparent;
+        color: #ffffff;
+        box-shadow: 0 6px 18px rgba(245, 158, 11, .35);
+    }
 
-            <?= Html::a('+ Crear Campaña', ['create'], [
-                'class' => 'btn btn-primary btn-sm'
-            ]) ?>
-        </div>
-    </div>
-
-    <style>
-        .filtros-diseño {
-            background-color: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
+    @media (max-width: 768px) {
+        .filtros-diseño .d-flex {
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .btn-filtro {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            color: #6c757d;
-            padding: 4px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
+            margin-bottom: 6px;
+            font-size: 11px;
+            padding: 5px 10px;
         }
-
-        .btn-filtro:hover {
-            background-color: #e9ecef;
-            border-color: #adb5bd;
-            color: #495057;
-            text-decoration: none;
-        }
-
-        .btn-filtro.active {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: #ffffff;
-        }
-
-        @media (max-width: 768px) {
-            .filtros-diseño .d-flex {
-                flex-wrap: wrap;
-            }
-
-            .btn-filtro {
-                margin-bottom: 5px;
-                font-size: 11px;
-                padding: 3px 8px;
-            }
-        }
-
-        /* Estilo cuando una celda está en edición */
-        .editable-field.editing {
-            position: relative;
-            z-index: 2;
-        }
-    </style>
-
-    <?= CustomGridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel ?? null,
-        'summary' => false,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
-            // Campaña (badge con color, clic para editar select)
-            [
-    'attribute' => 'nombre',
-    'format' => 'raw',
-    'value' => function ($model) {
-        $display = Html::encode((string)$model->nombre);
-        $current = Html::encode((string)$model->nombre);
-        return "<div class='editable-field' data-field-type='text' data-field-name='nombre' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$display}</div>";
     }
-],
 
-            [
-                'attribute' => 'campaña_id',
-                'label' => 'Campaña',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $nombre = catalogName($model->campaña_id ?? null);
-            $colores = generarColorUnico($nombre);
-            $badge = Html::tag('span', Html::encode($nombre), [
-                'class' => 'badge',
-                'style' => "background-color:{$colores['bg']};color:{$colores['text']}"
-            ]);
-            $current = $model->campaña_id ?? '';
-            return "<div class='editable-field' data-field-type='select' data-field-name='campaña_id' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$badge}</div>";
-        }
-            ],
+    /* Tabla: evitar encimado y mejorar scroll */
+    .table-wrap {
+        overflow-x: auto;
+    }
 
-            // Asesor (badge con color, clic para editar select)
-            [
-                'attribute' => 'asesor_id',
-                'label' => 'Asesor',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $nombre = catalogName($model->asesor_id ?? null);
-            $colores = generarColorUnico($nombre);
-            $badge = Html::tag('span', Html::encode($nombre), [
-                'class' => 'badge',
-                'style' => "background-color:{$colores['bg']};color:{$colores['text']}"
-            ]);
-            $current = $model->asesor_id ?? '';
-            return "<div class='editable-field' data-field-type='select' data-field-name='asesor_id' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$badge}</div>";
-        }
-            ],
+    .table-wrap .grid-view {
+        margin-bottom: 0;
+    }
 
-            // Inversión (número con formato)
-            [
-                'attribute' => 'inversion',
-                'label' => 'Inversión',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $valor = (float) ($model->inversion ?? 0);
-            $mostrar = '$' . number_format($valor, 2);
-            return "<div class='editable-field' data-field-type='number' data-field-name='inversion' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$mostrar}</div>";
-        }
-            ],
+    .table-wrap table {
+        width: 100% !important;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
 
-            // Mensajes (número)
-            [
-                'attribute' => 'mensajes',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $valor = (int) ($model->mensajes ?? 0);
-            return "<div class='editable-field' data-field-type='number' data-field-name='mensajes' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$valor}</div>";
-        }
-            ],
+    .table-wrap .table> :not(caption)>*>* {
+        background-color: transparent;
+    }
 
-            // Retorno (número con formato)
-            [
-                'attribute' => 'retorno',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $valor = (float) ($model->retorno ?? 0);
-            $mostrar = '$' . number_format($valor, 2);
-            return "<div class='editable-field' data-field-type='number' data-field-name='retorno' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$mostrar}</div>";
-        }
-            ],
+    /* Encabezado bonito */
+    .hero-card {
+        background-image: linear-gradient(135deg, #4f46e5 0%, #d946ef 50%, #7c3aed 100%);
+        color: #fff;
+        border-radius: 1rem;
+        padding: 16px 18px;
+    }
 
-            // Análisis (badge de estado, clic para editar select)
-            [
-                'attribute' => 'analisis',
-                'label' => 'Análisis',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $estado = $model->analisis ?: 'analizar';
-            $colores = generarColorAnalisis($estado);
-            $texto = ucfirst($estado);
-            $badge = Html::tag('span', Html::encode($texto), [
-                'class' => 'badge',
-                'style' => "background-color:{$colores['bg']};color:{$colores['text']}"
-            ]);
-            return "<div class='editable-field' data-field-type='select' data-field-name='analisis' data-record-id='{$model->id}' data-current-value='" . Html::encode((string) $model->analisis) . "' title='Click para editar'>{$badge}</div>";
-        }
-            ],
+    .hero-card .title {
+        font-size: 1.125rem;
+        font-weight: 700;
+    }
 
-            // Mensaje predeterminado (texto)
-            [
-                'attribute' => 'mensaje_predeterminado',
-                'label' => 'Mensaje',
-                'format' => 'raw',
-                'value' => function ($model) {
-            $texto = trim((string) $model->mensaje_predeterminado);
-            $corto = mb_strimwidth($texto, 0, 60, '…', 'UTF-8');
-            return "<div class='editable-field' data-field-type='text' data-field-name='mensaje_predeterminado' data-record-id='{$model->id}' data-current-value='" . Html::encode($texto) . "' title='" . Html::encode($texto) . "'>{$corto}</div>";
-        }
-            ],
-        ],
-    ]); ?>
+    .hero-card .subtitle {
+        font-size: .875rem;
+        opacity: .95;
+    }
+
+    /* Estilo cuando una celda está en edición */
+    .editable-field.editing {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Modal ancho y estilo (igual que Ventas) */
+    .modal-xl {
+        max-width: 95%;
+        width: 1400px;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        border-radius: 15px 15px 0 0;
+    }
+</style>
+
+<div class="camps-bg min-vh-100">
+    <div class="container py-4">
+
+        <!-- Flash -->
+        <?php if (Yii::$app->session->hasFlash('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i><?= Yii::$app->session->getFlash('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Encabezado + Tabs -->
+        <div class="d-flex flex-column gap-3 mb-3">
+            <div class="hero-card d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="title"><?= Html::encode($this->title) ?></div>
+                    <div class="subtitle">Panel para administrar y comparar campañas de marketing</div>
+                </div>
+                <div class="d-none d-md-flex gap-2">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalNuevaCampana">
+                        <i class="fas fa-plus me-1"></i> Nueva campaña
+                    </button>
+                    <a class="btn btn-outline-light btn-sm" href="<?= Url::to(['campanas/export-excel']) ?>">
+                        <i class="fas fa-file-excel me-1"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <a class="navtab navtab-active" href="<?= Url::to(['campanas/index']) ?>">Campañas</a>
+                    <a class="navtab" href="<?= Url::to(['retorno/index']) ?>">Retorno</a>
+                    <a class="navtab" href="<?= Url::to(['ventas-mensuales/index']) ?>">Comparativas</a>
+                    <a class="navtab" href="<?= Url::to(['productos-vendidos/index']) ?>">Productos</a>
+                </div>
+                <div class="d-flex gap-2 d-md-none">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalNuevaCampana">+ Crear</button>
+                    <a class="btn btn-outline-secondary btn-sm"
+                        href="<?= Url::to(['campanas/export-excel']) ?>">Excel</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra superior con filtros estilo chips (amarilla) -->
+        <div class="filtros-diseño mb-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="<?= Url::to(['campanas/index']) ?>"
+                    class="btn-filtro <?= !$filtroAnalisis ? 'active' : '' ?>">Todos</a>
+            </div>
+
+        </div>
+
+        <!-- Tabla en tarjeta amarilla, con contenedor responsive para evitar encimado -->
+        <div class="card-soft-yellow p-2">
+            <div class="table-wrap">
+                <?= CustomGridView::widget([
+                    'dataProvider' => $dataProvider,
+                    'filterModel' => $searchModel ?? null,
+                    'summary' => false,
+                    'tableOptions' => ['class' => 'table table-striped table-hover align-middle mb-0'],
+                    'columns' => [
+                        ['class' => 'yii\grid\SerialColumn'],
+
+                        // Campaña (editable text)
+                        [
+                            'attribute' => 'nombre',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $display = Html::encode((string) $model->nombre);
+                                                $current = Html::encode((string) $model->nombre);
+                                                return "<div class='editable-field' data-field-type='text' data-field-name='nombre' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$display}</div>";
+                                            }
+                        ],
+
+                        // Tipo de campaña (catálogo) editable select
+                        [
+                            'attribute' => 'campaña_id',
+                            'label' => 'Campaña',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $nombre = catalogName($model->campaña_id ?? null);
+                                                $colores = generarColorUnico($nombre);
+                                                $badge = Html::tag('span', Html::encode($nombre), [
+                                                    'class' => 'badge',
+                                                    'style' => "background-color:{$colores['bg']};color:{$colores['text']};font-weight:600;"
+                                                ]);
+                                                $current = $model->campaña_id ?? '';
+                                                return "<div class='editable-field' data-field-type='select' data-field-name='campaña_id' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$badge}</div>";
+                                            }
+                        ],
+
+                        // Asesor (catálogo) editable select
+                        [
+                            'attribute' => 'asesor_id',
+                            'label' => 'Asesor',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $nombre = catalogName($model->asesor_id ?? null);
+                                                $colores = generarColorUnico($nombre);
+                                                $badge = Html::tag('span', Html::encode($nombre), [
+                                                    'class' => 'badge',
+                                                    'style' => "background-color:{$colores['bg']};color:{$colores['text']};font-weight:600;"
+                                                ]);
+                                                $current = $model->asesor_id ?? '';
+                                                return "<div class='editable-field' data-field-type='select' data-field-name='asesor_id' data-record-id='{$model->id}' data-current-value='{$current}' title='Click para editar'>{$badge}</div>";
+                                            }
+                        ],
+
+                        // Inversión (número)
+                        [
+                            'attribute' => 'inversion',
+                            'label' => 'Inversión',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $valor = (float) ($model->inversion ?? 0);
+                                                $mostrar = '$' . number_format($valor, 2);
+                                                return "<div class='editable-field' data-field-type='number' data-field-name='inversion' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$mostrar}</div>";
+                                            }
+                        ],
+
+                        // Mensajes (número)
+                        [
+                            'attribute' => 'mensajes',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $valor = (int) ($model->mensajes ?? 0);
+                                                return "<div class='editable-field' data-field-type='number' data-field-name='mensajes' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$valor}</div>";
+                                            }
+                        ],
+
+                        // Retorno (número)
+                        [
+                            'attribute' => 'retorno',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $valor = (float) ($model->retorno ?? 0);
+                                                $mostrar = '$' . number_format($valor, 2);
+                                                return "<div class='editable-field' data-field-type='number' data-field-name='retorno' data-record-id='{$model->id}' data-current-value='{$valor}' title='Click para editar'>{$mostrar}</div>";
+                                            }
+                        ],
+
+                        // Análisis (estado) editable select con badge
+                        [
+                            'attribute' => 'analisis',
+                            'label' => 'Análisis',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $estado = $model->analisis ?: 'Analizar';
+                                                $colores = generarColorAnalisis($estado);
+                                                $texto = ucfirst(strtolower($estado));
+                                                $badge = Html::tag('span', Html::encode($texto), [
+                                                    'class' => 'badge',
+                                                    'style' => "background-color:{$colores['bg']};color:{$colores['text']};font-weight:600;"
+                                                ]);
+                                                return "<div class='editable-field' data-field-type='select' data-field-name='analisis' data-record-id='{$model->id}' data-current-value='" . Html::encode((string) $model->analisis) . "' title='Click para editar'>{$badge}</div>";
+                                            }
+                        ],
+
+                        // Mensaje predeterminado (texto)
+                        [
+                            'attribute' => 'mensaje_predeterminado',
+                            'label' => 'Mensaje',
+                            'format' => 'raw',
+                            'value' => function ($model) {
+                                                $texto = trim((string) $model->mensaje_predeterminado);
+                                                $corto = mb_strimwidth($texto, 0, 60, '…', 'UTF-8');
+                                                return "<div class='editable-field' data-field-type='text' data-field-name='mensaje_predeterminado' data-record-id='{$model->id}' data-current-value='" . Html::encode($texto) . "' title='" . Html::encode($texto) . "'>{$corto}</div>";
+                                            }
+                        ],
+                    ],
+                ]); ?>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal para Nueva Campaña (misma experiencia que Ventas) -->
+<div class="modal fade" id="modalNuevaCampana" tabindex="-1" aria-labelledby="modalNuevaCampanaLabel" aria-hidden="true"
+    data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#4f46e5; color:#fff;">
+                <h4 class="modal-title" id="modalNuevaCampanaLabel">
+                    <i class="fas fa-bullhorn me-2"></i> Nueva Campaña
+                </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <?php if (isset($modeloNuevo)): ?>
+                    <?= $this->render('_form', ['model' => $modeloNuevo]) ?>
+                <?php else: ?>
+                    <div class="alert alert-warning mb-0">
+                        No se pasó $modeloNuevo desde el controlador. Para usar el modal, envía un modelo nuevo a la vista.
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border me-2" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary btn-lg" id="btnGuardarCampana" form="campanasForm">
+                    <i class="fas fa-save me-1"></i> Guardar Campaña
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php
-// Exponer URLs como variables JS globales (compatible con cualquier versión de Yii2)
+// Exponer URLs como variables JS globales
 $this->registerJs(
     'window.campanasUpdateFieldUrl = ' . json_encode(Url::to(['campanas/update-field'])) . ';
      window.campanasGetSelectOptionsUrl = ' . json_encode(Url::to(['campanas/get-select-options'])) . ';',
     \yii\web\View::POS_HEAD
 );
 
-// Script principal en nowdoc para evitar interpolación de ${...}
+// JS para modal (replica comportamiento de Ventas: reset al cerrar, spinner al guardar)
+$this->registerJs(<<<'JS'
+(function(){
+  const modal = $('#modalNuevaCampana');
+
+  modal.on('hidden.bs.modal', function () {
+    const form = modal.find('form')[0];
+    if (form) form.reset();
+  });
+
+  modal.on('shown.bs.modal', function () {
+    // Enfocar primer input del form
+    const first = modal.find('input, select, textarea').filter(':visible:enabled').first();
+    if (first.length) first.focus();
+  });
+
+  modal.on('click', '#btnGuardarCampana', function(e){
+    // Si el form en _form tiene id "campanasForm", el atributo form del botón ya disparará submit.
+    // De todas formas añadimos spinner y protección.
+    const btn = $(this);
+    e.preventDefault();
+    const form = modal.find('form')[0];
+    if (!form) return;
+
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Guardando...');
+    // Enviar el formulario normal (no AJAX) para respetar validaciones del controlador
+    form.submit();
+  });
+})();
+JS);
+
+// Script de edición inline (igual que antes)
 $this->registerJs(<<<'JS'
 $(document).ready(function() {
     let editingCell = null;
@@ -489,15 +657,15 @@ $(document).ready(function() {
                                 displayContent = '$' + num.toFixed(2);
                             } else if (fieldName === 'analisis') {
                                 const estado = String(newValue || '');
-                                const texto = estado.charAt(0).toUpperCase() + estado.slice(1);
-                                displayContent = '<span class="badge bg-secondary">' + texto + '</span>';
+                                const texto = estado.charAt(0).toUpperCase() + estado.slice(1).toLowerCase();
+                                displayContent = '<span class="badge bg-secondary" style="font-weight:600;">' + texto + '</span>';
                             } else if (fieldName === 'asesor_id' || fieldName === 'campaña_id') {
                                 // Para selects de catálogo, refrescar texto con llamada ligera
                                 $.get(window.campanasGetSelectOptionsUrl, {field: fieldName}, function(res) {
                                     const opts = (res && res.options) ? res.options : [];
                                     const found = opts.find(o => String(o.value) === String(newValue));
                                     const nombre = found ? found.text : 'Sin asignar';
-                                    const badge = `<span class="badge bg-light text-dark">${nombre}</span>`;
+                                    const badge = `<span class="badge bg-light text-dark" style="font-weight:600;">${nombre}</span>`;
                                     cell.data('current-value', newValue);
                                     cell.html(badge);
                                 }, 'json');
@@ -557,7 +725,7 @@ $(document).ready(function() {
                 cell.find('.cancel-btn').click();
             }
         });
-    }
+    });
 
     // Cerrar edición si clic fuera
     $(document).on('click', function(e) {
@@ -567,22 +735,17 @@ $(document).ready(function() {
         }
     });
 
-    function showNotification(message, type) {
+    // Notificación reutilizable
+    window.showNotification = window.showNotification || function(message, type) {
         const alertClass = (type === 'success') ? 'alert-success' : 'alert-danger';
         const icon = (type === 'success') ? 'fa-check-circle' : 'fa-exclamation-triangle';
-
-        const notification = `
-            <div class="alert ${alertClass} alert-dismissible fade show notification-toast" role="alert"
-                 style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                <i class="fas ${icon} me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-        $('body').append(notification);
-        setTimeout(function() {
-            $('.notification-toast').fadeOut(function() { $(this).remove(); });
-        }, 3000);
-    }
+        const node = document.createElement('div');
+        node.className = `alert ${alertClass} alert-dismissible fade show notification-toast`;
+        node.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
+        node.innerHTML = `<i class="fas ${icon} me-2"></i>${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(node);
+        setTimeout(()=>{ $(node).fadeOut(function(){ $(this).remove(); }); }, 3000);
+    };
 });
 JS);
 ?>
