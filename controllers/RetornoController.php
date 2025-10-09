@@ -9,7 +9,6 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\db\Query;
-use yii\db\Expression;
 
 use app\models\Catalogos;
 use app\models\Campanas;
@@ -30,7 +29,7 @@ class RetornoController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only'  => ['index', 'extra-totales', 'breakdown-asesor'],
+                'only'  => ['index', 'extra-totales', 'extra-matriz', 'breakdown-asesor'],
                 'rules' => [
                     ['allow' => true, 'roles' => ['@']],
                 ],
@@ -38,8 +37,9 @@ class RetornoController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
-                    'extra-totales'   => ['POST'],
-                    'breakdown-asesor'=> ['GET'],
+                    'extra-totales'    => ['POST'],
+                    'extra-matriz'     => ['POST'],
+                    'breakdown-asesor' => ['GET'],
                 ],
             ],
         ];
@@ -73,6 +73,7 @@ class RetornoController extends Controller
             ->orderBy('nombre')
             ->asArray()
             ->all();
+        $campaniasById = ArrayHelper::map($campaniasCatalog, 'id', 'nombre');
 
         // Nombres de tablas / campos
         $v  = Ventas::tableName();
@@ -111,7 +112,7 @@ class RetornoController extends Controller
             }
         }
 
-        // 3) Retorno Recompra (campaña = Recompra, según mock)
+        // 3) Retorno Recompra (campaña = Recompra)
         $recompraPorAsesor = [];
         if ($campRecompraId) {
             $rows = (new Query())
@@ -170,13 +171,11 @@ class RetornoController extends Controller
             'webPorAsesor'          => $webPorAsesor,
             'desconocidoPorAsesor'  => $desconocidoPorAsesor,
             'campaniasCatalog'      => $campaniasCatalog,
-            'campOrganicaId'        => $campOrganicaId,
-            'campRecompraId'        => $campRecompraId,
-            'medioWebId'            => $medioWebId,
+            'campaniasById'         => $campaniasById,
         ]);
     }
 
-    // Retorno Extra (sumas por asesor para campañas seleccionadas)
+    // Retorno Extra (simple, total por asesor de campañas seleccionadas) – se mantiene por compatibilidad
     public function actionExtraTotales(): array
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -217,6 +216,110 @@ class RetornoController extends Controller
         return ['success'=>true, 'porAsesor'=>$porAsesor, 'granTotal'=>round($granTotal,2)];
     }
 
+    // NUEVO: Retorno Extra por campaña y por asesor (matriz campaña × asesor)
+    public function actionExtraMatriz(): array
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $month = Yii::$app->request->post('month');
+        $campanas = Yii::$app->request->post('campanas', []);
+        if (!$month || !is_array($campanas) || empty($campanas)) {
+            return ['success'=>false, 'message'=>'Selecciona al menos una campaña'];
+        }
+
+        [$start, $end] = $this->monthRange($month);
+
+        // Mapas de nombres
+        $asesores = Catalogos::find()->select(['id','nombre'])->where(['tipo'=>'asesor'])->indexBy('id')->asArray()->all();
+        $campSel = Catalogos::find()->select(['id','nombre'])->where(['id'=>array_map('intval', $campanas)])->indexBy('id')->asArray()->all();
+
+        $v  = Ventas::tableName();
+        $df = $this->ventasDateField;
+        $af = $this->ventasAmountField;
+        $sf = $this->ventasAsesorField;
+        $cf = $this->ventasCampField;
+
+        // Agrupado por asesor y campaña
+        $rows = (new Query())
+            ->select([
+                'asesor_id' => $sf,
+                'camp_id'   => $cf,
+                'total'     => "SUM(COALESCE($af,0))",
+            ])
+            ->from($v)
+            ->where(['between', $df, $start, $end])
+            ->andWhere(['in', $cf, array_map('intval', $campanas)])
+            ->groupBy([$sf, $cf])
+            ->all();
+
+        $byCampaign = []; // camp_id => ['name'=>..., 'total'=>float, 'items'=>[['asesorId'=>..,'name'=>..,'total'=>..],...]]
+        $byAdvisor  = []; // asesor_id => ['name'=>..., 'total'=>float, 'items'=>[['campId'=>..,'name'=>..,'total'=>..],...]]
+        $grandTotal = 0.0;
+
+        foreach ($rows as $r) {
+            $aid = (int)$r['asesor_id'];
+            $cid = (int)$r['camp_id'];
+            $tot = round((float)$r['total'], 2);
+
+            if ($tot <= 0) continue;
+
+            // Por campaña
+            if (!isset($byCampaign[$cid])) {
+                $byCampaign[$cid] = [
+                    'name'  => $campSel[$cid]['nombre'] ?? ('Campaña #'.$cid),
+                    'total' => 0.0,
+                    'items' => [],
+                ];
+            }
+            $byCampaign[$cid]['total'] += $tot;
+            $byCampaign[$cid]['items'][] = [
+                'asesorId' => $aid,
+                'name'     => $asesores[$aid]['nombre'] ?? ('Asesor #'.$aid),
+                'total'    => $tot,
+            ];
+
+            // Por asesor
+            if (!isset($byAdvisor[$aid])) {
+                $byAdvisor[$aid] = [
+                    'name'  => $asesores[$aid]['nombre'] ?? ('Asesor #'.$aid),
+                    'total' => 0.0,
+                    'items' => [],
+                ];
+            }
+            $byAdvisor[$aid]['total'] += $tot;
+            $byAdvisor[$aid]['items'][] = [
+                'campId' => $cid,
+                'name'   => $campSel[$cid]['nombre'] ?? ('Campaña #'.$cid),
+                'total'  => $tot,
+            ];
+
+            $grandTotal += $tot;
+        }
+
+        // Ordenar items internos por total desc
+        foreach ($byCampaign as &$c) {
+            usort($c['items'], fn($a,$b)=> $b['total'] <=> $a['total']);
+            $c['total'] = round($c['total'], 2);
+        }
+        unset($c);
+        foreach ($byAdvisor as &$a) {
+            usort($a['items'], fn($x,$y)=> $y['total'] <=> $x['total']);
+            $a['total'] = round($a['total'], 2);
+        }
+        unset($a);
+
+        // Ordenar top-level por total desc
+        uasort($byCampaign, fn($a,$b)=> $b['total'] <=> $a['total']);
+        uasort($byAdvisor,  fn($a,$b)=> $b['total'] <=> $a['total']);
+
+        return [
+            'success'    => true,
+            'byCampaign' => $byCampaign,
+            'byAdvisor'  => $byAdvisor,
+            'grandTotal' => round($grandTotal, 2),
+        ];
+    }
+
     // Breakdown simple por asesor (para panel individual)
     public function actionBreakdownAsesor(int $asesorId, ?string $month = null): array
     {
@@ -236,7 +339,7 @@ class RetornoController extends Controller
         $mf = $this->ventasMedioField;
         $cf = $this->ventasCampField;
 
-        $sumWhere = function($where) use($v,$df,$af,$sf,$start,$end){
+        $sumWhere = function($where) use($v,$df,$af,$start,$end){
             return (float)(new Query())->from($v)->where(['between',$df,$start,$end])->andWhere($where)->sum($af) ?: 0.0;
         };
 
